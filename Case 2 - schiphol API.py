@@ -243,7 +243,7 @@ elif options == 'Geografische map':
 
     st.title("Flight Visualization with PyDeck")
     selected_time = st.select_slider("Select a Time:", available_times)
-    
+
     container = st.container()
 
     with container:
@@ -252,7 +252,6 @@ elif options == 'Geografische map':
         with col1:
             flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
-            st.pydeck_chart(flight_deck, use_container_width=True) # Ensure chart fills column width
 
         with col2:
             st.markdown(
