@@ -12,6 +12,8 @@ import matplotlib.patheffects as path_effects
 
 import pydeck as pdk
 
+st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
+
 # Schiphol API details
 url_base = "https://api.schiphol.nl/public-flights/flights"
 headers = {
@@ -255,8 +257,8 @@ elif options == 'Geografische map':
             st.markdown(
                     """
                     ### Legend:
-                    - <span style="color:blue">Blue</span>: Departing Flights
-                    - <span style="color:green">Green</span>: Arriving Flights
+                    - <span style="color:blue">Blue</span>:     Departing Flights
+                    - <span style="color:green">Green</span>:   Arriving Flights
                     """,
                     unsafe_allow_html=True
                 )
