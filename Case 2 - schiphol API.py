@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from shapely.geometry import Point
 import matplotlib.patheffects as path_effects
-import os
 
 # Schiphol API details
 url_base = "https://api.schiphol.nl/public-flights/flights"

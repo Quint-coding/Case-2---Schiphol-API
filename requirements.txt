@@ -8,3 +8,9 @@ scikit-learn
 scipy
 matplotlib
 seaborn
+
+statsmodels
+shapely
+ipywidgets
+geopandas
+requests
