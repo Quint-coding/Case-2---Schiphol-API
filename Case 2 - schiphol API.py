@@ -241,6 +241,9 @@ if options == 'Statistiek':
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
     st.title("Flight Visualization with PyDeck")
+
+    st.write(df.head())
+    st.write(df.info())
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
     available_times = sorted(df['scheduleDateTime'].unique())
 
