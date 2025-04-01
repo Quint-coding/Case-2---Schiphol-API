@@ -246,7 +246,7 @@ elif options == 'Geografische map':
     container = st.container()
 
     with container:
-        col1, col2 = st.columns([1, 1])  # Adjust the ratio of widths as needed
+        col1, col2 = st.columns((1, 1))  # Adjust the ratio of widths as needed
 
         flight_deck = visualize_flights_from_schiphol(df, selected_time)
         col1.plotly_chart(flight_deck, use_container_width=True)
