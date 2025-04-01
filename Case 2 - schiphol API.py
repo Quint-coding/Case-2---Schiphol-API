@@ -12,8 +12,6 @@ import matplotlib.patheffects as path_effects
 
 import pydeck as pdk
 
-st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
-
 # Schiphol API details
 url_base = "https://api.schiphol.nl/public-flights/flights"
 headers = {
@@ -58,6 +56,7 @@ def get_flight_data():
 # Get cached data
 df = get_flight_data()
 
+st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
@@ -224,6 +223,8 @@ def visualize_flights_from_schiphol(df, selected_time):
     st.pydeck_chart(r)
 
 if options == 'Statistiek':
+
+    st.title('Statistiek')
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
         st.header('Aantal vluchten')
