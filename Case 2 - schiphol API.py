@@ -164,7 +164,7 @@ def visualize_flights_from_schiphol(df, selected_time):
         get_source_position="from",
         get_target_position="to",
         get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
-        get_target_color=[0, 255, 0, 200],      # Transparent target for departing (Destination)
+        get_target_color=[0, 255, 0, 200],  # Transparent target for departing (Destination)
         auto_highlight=True,
         width_scale=0.02,
         width_min_pixels=3,
