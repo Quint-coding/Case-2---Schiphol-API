@@ -241,17 +241,15 @@ elif options == 'Geografische map':
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
     available_times = df['scheduleDateTime'].unique()
 
-    st.title("Flight Visualization with PyDeck")
     selected_time = st.select_slider("Select a Time:", available_times)
 
     container = st.container()
 
     with container:
-        col1, col2 = st.columns([2, 1])  # Adjust the ratio of widths as needed
+        col1, col2 = st.columns([1, 1])  # Adjust the ratio of widths as needed
 
         with col1:
-            flight_deck = visualize_flights_from_schiphol(df, selected_time)
-
+            flight_deck = visualize_flights_from_schiphol(df, selected_time, use_container_width=True)
 
         with col2:
             st.markdown(
@@ -261,6 +259,7 @@ elif options == 'Geografische map':
                 - <span style="color:green">Green</span>: Arriving Flights
                 """,
                 unsafe_allow_html=True,
+                use_container_width=True
             )
 
 
