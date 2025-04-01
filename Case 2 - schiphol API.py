@@ -220,6 +220,8 @@ elif options == 'vluchten per tijdstip geografische map':
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
     # Convert scheduleDateTime to string for easy selection
+    st.write(df)
+    
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
     available_times = df['scheduleDateTime'].unique()
 
