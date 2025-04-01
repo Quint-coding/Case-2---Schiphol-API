@@ -63,7 +63,7 @@ options = st.sidebar.radio('pages', ['Aantal vluchten', 'Vluchten per tijdstip',
 st.sidebar.title("📍 Navigatie")
 options = st.sidebar.radio("Ga naar", ['Aantal vluchten', 
                                        'Vluchten per tijdstip',
-                                       'vluchten per tijdstip geografische map', 
+                                       'vluchten per tijdstip geografische map (pydeck)', 
                                        'Interactieve plot', 
                                        "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij",
                                        'Aanpassingen'])
@@ -217,6 +217,8 @@ elif options == 'vluchten per tijdstip geografische map':
     selected_time = st.select_slider("Kies een tijdstip", options=gdf["scheduleDateTime"].dropna().unique())
     vlucht5(gdf, selected_time)  # Nu is selected_time gedefinieerd
 
+
+elif options == 'vluchten per tijdstip geografische map (pydeck)':
     # Convert scheduleDateTime to string for easy selection
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
     available_times = df['scheduleDateTime'].unique()
