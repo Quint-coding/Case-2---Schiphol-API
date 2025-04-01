@@ -7,7 +7,7 @@ import requests
 import plotly.express as px
 from datetime import datetime, timedelta
 
-
+st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
 # Schiphol API details
 url_base = "https://api.schiphol.nl/public-flights/flights"
@@ -62,8 +62,6 @@ def get_flight_data():
 
 # --- Load Data ---
 df = get_flight_data()
-
-st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
 # --- Sidebar Navigation ---
 st.sidebar.title("📍 Navigatie")
