@@ -7,11 +7,16 @@ import requests
 import plotly.express as px
 from datetime import datetime, timedelta
 
-# --- API Configuration ---
-url_base = "https://api.schiphol.nl/public-flights/flights"
-api_key = st.secrets["API_KEY"]  # Assuming you have your API key in Streamlit secrets
-headers = {'Accept': 'application/json', 'app_id': 'b921c90b', 'app_key': api_key}
 
+
+# Schiphol API details
+url_base = "https://api.schiphol.nl/public-flights/flights"
+headers = {
+    'accept': 'application/json',
+    'resourceversion': 'v4',
+    'app_id': 'b1ff0af7',
+    'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
+}
 # --- Data Fetching and Caching ---
 @st.cache_data(ttl=60)  # Cache for 1 minute for real-time updates
 def get_realtime_flight_data():
