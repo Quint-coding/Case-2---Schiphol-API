@@ -320,7 +320,7 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
     st.title("Flight Visualization with PyDeck")
     selected_time = st.select_slider("Select a Time:", available_times)
 
-    visualize_flights_from_schiphol(df, selected_time)
+    visualize_flights_schiphol_direction_with_legend(df, selected_time)
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
     st.write('Als eerst hebben wij het bestand in een github repo gezet om makkelijk aanpassingen te maken en daarna is ook het kleuren thema veranderd.')
