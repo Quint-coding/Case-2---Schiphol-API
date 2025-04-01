@@ -133,12 +133,15 @@ SCHIPHOL_LAT = 52.308611
 
 def visualize_flights_from_schiphol(df, selected_time):
     """
-    Visualizes flight paths departing from Schiphol at a specific time
-    using pydeck's ArcLayer in Streamlit.
+    Visualizes flight paths to and from Schiphol using separate ArcLayers
+    for departures (Blue fading out) and arrivals (Origin Green fading to Schiphol Green)
+    using pydeck in Streamlit.
 
     Args:
-        df (pd.DataFrame): DataFrame containing flight data with 'longitude_deg',
-                           'latitude_deg', and 'scheduleDateTime'.
+        df (pd.DataFrame): DataFrame containing flight data with
+                           'longitude_deg', 'latitude_deg', 'scheduleDateTime',
+                           and 'flightDirection' ('A' or 'D'), and optionally
+                           'destination' (for departures) or 'origin' (for arrivals).
         selected_time (str): The specific scheduleDateTime to visualize.
     """
     selected_flights = df[df["scheduleDateTime"] == selected_time].copy()
@@ -146,47 +149,54 @@ def visualize_flights_from_schiphol(df, selected_time):
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
 
-    # Add Schiphol coordinates as the central point
-    selected_flights['schiphol'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(selected_flights)
+    # Separate departing and arriving flights
+    departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
+    arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
 
-    def get_target_color(flight_direction):
-            if flight_direction == 'D':
-                return [0, 0, 0, 0]      # Transparent target for departing (Destination)
-            elif flight_direction == 'A':
-                return [0, 255, 0, 200]  # Green target for arriving (Schiphol)
-            return [128, 128, 128, 100] # Default grey
-
-    def get_target_color():
-        return [0, 0, 0, 0]  # Transparent target color for fading
-
-    # Determine source and target positions based on flightDirection
-    def get_source_position(row):
-        return row['schiphol'] if row['flightDirection'] == 'D' else [row['longitude_deg'], row['latitude_deg']]
-
-    def get_target_position(row):
-        return [row['longitude_deg'], row['latitude_deg']] if row['flightDirection'] == 'D' else row['schiphol']
-
-    selected_flights['source_color'] = selected_flights['flightDirection'].apply(get_source_color)
-    selected_flights['target_color'] = selected_flights.apply(lambda row: get_target_color(), axis=1)
-    selected_flights['from'] = selected_flights.apply(get_source_position, axis=1)
-    selected_flights['to'] = selected_flights.apply(get_target_position, axis=1)
-
-    # Define the PyDeck ArcLayer
-    arc_layer = pdk.Layer(
+    # Prepare data for Departing ArcLayer (Blue to Transparent)
+    departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
+    departing['to'] = departing.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    departing_arc_layer = pdk.Layer(
         "ArcLayer",
-        data=selected_flights,
+        data=departing,
         get_source_position="from",
         get_target_position="to",
-        get_source_color="source_color",
-        get_target_color="target_color",
+        get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
+        get_target_color=[0, 0, 0, 0],      # Transparent target for departing (Destination)
         auto_highlight=True,
         width_scale=0.02,
         width_min_pixels=3,
         tooltip={
-            "html": "<b>Time:</b> {scheduleDateTime}<br/>"
-                    "<b>Direction:</b> {flightDirection}" +
-                    ("<br/><b>Destination:</b> {destination}" if "flightDirection" == 'D' and "destination" in selected_flights.columns else "") +
-                    ("<br/><b>Origin:</b> {origin}" if "flightDirection" == 'A' and "origin" in selected_flights.columns else ""),
+            "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
+    )
+
+    # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
+    arriving['from'] = arriving.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
+    arriving_arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=arriving,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
+        get_target_color=[0, 255, 0, 200],  # Green target for arriving (Schiphol)
+        auto_highlight=True,
+        width_scale=0.02,
+        width_min_pixels=3,
+        tooltip={
+            "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
+                    f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
     )
@@ -198,11 +208,17 @@ def visualize_flights_from_schiphol(df, selected_time):
         pitch=50,
     )
 
-    # Create the PyDeck chart
+    # Create the PyDeck chart with both ArcLayers
+    layers = []
+    if not departing.empty:
+        layers.append(departing_arc_layer)
+    if not arriving.empty:
+        layers.append(arriving_arc_layer)
+
     r = pdk.Deck(
-        layers=[arc_layer],
+        layers=layers,
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/dark-v10",  # Optional: Use a different map style
+        map_style="mapbox://styles/mapbox/dark-v10",
     )
 
     # Display the PyDeck chart in Streamlit
@@ -212,8 +228,8 @@ def visualize_flights_from_schiphol(df, selected_time):
     st.markdown(
         """
         ### Legend:
-        - <span style="color:blue">Blue</span>: Flights Departing from Schiphol
-        - <span style="color:green">Green</span>: Flights Arriving at Schiphol
+        - <span style="color:blue">Blue to Transparent</span>: Flights Departing from Schiphol
+        - <span style="color:green">Green to Green</span>: Flights Arriving at Schiphol
         """,
         unsafe_allow_html=True,
     )
