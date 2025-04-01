@@ -246,8 +246,8 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
 
     with col1:
         # add the pydeck arclayerplot
-        df['scheduleTime'] = df['scheduleTime'].astype(str)
-        available_times = df['scheduleTime'].unique()
+        df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
+        available_times = df['scheduleDateTime'].unique()
 
         st.title("Flight Visualization with PyDeck")
         selected_time = st.select_slider("Select a Time:", available_times)
