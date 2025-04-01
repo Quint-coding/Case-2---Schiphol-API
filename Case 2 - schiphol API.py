@@ -56,8 +56,6 @@ def get_flight_data():
 # Get cached data
 df = get_flight_data()
 
-st.title("Schiphol vluchten")
-options = st.sidebar.radio('pages', ['Aantal vluchten', 'Vluchten per tijdstip','vluchten per tijdstip geografische map', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
 
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
@@ -172,6 +170,12 @@ def visualize_flights_from_schiphol(df, selected_time):
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
     )
+
+    # Calculate bounds for initial view state based on arrival locations
+    min_lon = selected_flights['longitude_deg'].min() if not selected_flights.empty else SCHIPHOL_LON
+    max_lon = selected_flights['longitude_deg'].max() if not selected_flights.empty else SCHIPHOL_LON
+    min_lat = selected_flights['latitude_deg'].min() if not selected_flights.empty else SCHIPHOL_LAT
+    max_lat = selected_flights['latitude_deg'].max() if not selected_flights.empty else SCHIPHOL_LAT
 
     # Adjust bounds to include Schiphol
     min_lon = min(min_lon, SCHIPHOL_LON - 1)  # Add a small buffer
