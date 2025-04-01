@@ -241,26 +241,11 @@ if options == 'Statistiek':
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
     st.title("Flight Visualization with PyDeck")
-
-    st.write(df.head())
-    st.write(df.info())
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
-    available_times = sorted(df['scheduleDateTime'].unique())
+    available_times = df['scheduleDateTime'].unique()
 
-    min_time = pd.to_datetime(available_times).min()
-    max_time = pd.to_datetime(available_times).max()
-
-    # Use min_time as a safe default Timestamp
-    default_time = min_time
-
-    selected_time = st.slider(
-        "Select a Time:",
-        min_value=min_time,
-        max_value=max_time,
-        value=default_time,
-        format="YYYY-MM-DD HH:mm:ss+00:00",  # Adjust format if needed
-        step=pd.Timedelta("1 minute")
-    ).strftime("%Y-%m-%d %H:%M:%S+00:00") # Adjust format if needed
+    st.title("Flight Visualization with PyDeck")
+    selected_time = st.select_slider("Select a Time:", available_times)
 
     flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
