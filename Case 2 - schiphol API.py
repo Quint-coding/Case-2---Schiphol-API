@@ -142,7 +142,7 @@ def visualize_flights_from_schiphol(df, selected_time):
                            'destination' (for departures) or 'origin' (for arrivals).
         selected_time (str): The specific scheduleDateTime to visualize.
     """
-    
+
     selected_flights = df[df["scheduleTime"] == selected_time].copy()
     if selected_flights.empty:
         st.warning(f"No flights found for the selected time: {selected_time}")
@@ -247,28 +247,45 @@ elif options == 'vluchten per tijdstip geografische map':
 
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
-    # seperate page into 2 columns
-    col1, col2 = st.columns(2)
+    # Convert scheduleDateTime to string for easy selection
+    df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
+    available_times = sorted(df['scheduleDateTime'].unique())
 
-    with col1:
-        # add the pydeck arclayerplot
-        df['scheduleTime'] = df['scheduleTime'].astype(str)
-        available_times = df['scheduleTime'].unique()
+    st.title("Flight Visualization with PyDeck")
 
-        st.title("Flight Visualization with PyDeck")
-        selected_time = st.select_slider("Select a Time:", available_times)
-        visualize_flights_from_schiphol(df, selected_time)
+    min_time = pd.to_datetime(available_times).min()
+    max_time = pd.to_datetime(available_times).max()
+    default_time_index = available_times.index(available_times[len(available_times) // 2]) if available_times else 0
+    default_time = pd.to_datetime(available_times[default_time_index]) if available_times else min_time
 
-    with col2:
-        # Add a legend using Streamlit's markdown
-        st.markdown(
-        """
-        ### Legend:
-        - <span style="color:blue">Blue</span>: Departing Flights
-        - <span style="color:green">Green</span>: Arriving Flights
-        """,
-        unsafe_allow_html=True,
-    )
+    selected_time = st.slider(
+        "Select Time:",
+        min_value=min_time,
+        max_value=max_time,
+        value=default_time,
+        format="YYYY-MM-DD HH:mm:ss+02:00",
+        step=pd.Timedelta("1 minute")
+    ).strftime("%Y-%m-%d %H:%M:%S+02:00")
+
+    flight_deck = visualize_flights_from_schiphol(df, selected_time)
+
+    container = st.container()
+
+    with container:
+        col1, col2 = st.columns([3, 1])  # Adjust the ratio of widths as needed
+
+        with col1:
+            st.pydeck_chart(flight_deck)
+
+        with col2:
+            st.markdown(
+                """
+                ### Legend:
+                - <span style="color:blue">Blue to Transparent</span>: Flights Departing from Schiphol
+                - <span style="color:green">Green to Green</span>: Flights Arriving at Schiphol
+                """,
+                unsafe_allow_html=True,
+            )
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
