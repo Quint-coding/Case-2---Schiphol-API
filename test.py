@@ -5,7 +5,7 @@ import time
 import threading
 import requests
 import plotly.express as px
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
@@ -267,8 +267,8 @@ elif options == 'Geografische map':
             # Process the real-time data
             realtime_df_minute_processed = _process_flight_data(realtime_df_raw_minute.copy())
 
-            # Convert scheduleTime to datetime objects (assuming UTC)
-            realtime_df_minute_processed['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute_processed['scheduleDateTime'], utc=True)
+            # Convert scheduleTime to datetime objects and make it timezone-naive
+            realtime_df_minute_processed['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute_processed['scheduleDateTime'], utc=True).dt.tz_localize(None)
 
             # Filter flights scheduled within the last minute
             recent_flights = realtime_df_minute_processed[realtime_df_minute_processed['scheduleDateTime_dt'] >= one_minute_ago_utc]
