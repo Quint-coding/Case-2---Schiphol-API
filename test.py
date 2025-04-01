@@ -241,8 +241,12 @@ elif options == 'Geografische map':
     with geo_tab2:
         st.header("Real-time vluchten (Alle actuele vluchten)")
         realtime_df_raw = get_raw_realtime_flight_data()
+        st.write("Raw Real-time Data:")  # Add this line
+        st.write(realtime_df_raw)      # Add this line
         if not realtime_df_raw.empty:
             realtime_df = _process_flight_data(realtime_df_raw.copy()) # Process the real-time data
+            st.write("Processed Real-time Data:") # Add this line
+            st.write(realtime_df)             # Add this line
             visualize_flights(realtime_df, Airports_clean, is_realtime=True)
         else:
             st.info("Momenteel geen real-time vluchtdata beschikbaar.")
