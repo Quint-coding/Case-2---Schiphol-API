@@ -142,7 +142,8 @@ def visualize_flights_from_schiphol(df, selected_time):
                            'destination' (for departures) or 'origin' (for arrivals).
         selected_time (str): The specific scheduleDateTime to visualize.
     """
-    selected_flights = df[df["scheduleDateTime"] == selected_time].copy()
+    
+    selected_flights = df[df["scheduleTime"] == selected_time].copy()
     if selected_flights.empty:
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
@@ -169,7 +170,7 @@ def visualize_flights_from_schiphol(df, selected_time):
         tooltip={
             "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
                     "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                    "<b>Time:</b> {scheduleDateTime}" +
+                    "<b>Time:</b> {scheduleTime}" +
                     ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
