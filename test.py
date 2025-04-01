@@ -228,12 +228,12 @@ elif options == 'Geografische map':
 
     with geo_tab2:
         st.header("Real-time vluchten (Alle actuele vluchten)")
-        realtime_df = get_realtime_flight_data()
-        if not realtime_df.empty:
+        realtime_df_raw = get_realtime_flight_data()
+        if not realtime_df_raw.empty:
             # Merge with airport data for coordinates
-            realtime_df = realtime_df.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
-                                            how='left', left_on='destination', right_on='iata_code',
-                                            suffixes=('_API', '_Airport'))
+            realtime_df = realtime_df_raw.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
+                                                how='left', left_on='destination', right_on='iata_code',
+                                                suffixes=('_API', '_Airport'))
             realtime_df = realtime_df.dropna(subset=["latitude_deg", "longitude_deg"])
             visualize_flights(realtime_df, is_realtime=True)
         else:
@@ -253,20 +253,21 @@ elif options == 'Geografische map':
         now_utc = datetime.utcnow()
         one_minute_ago_utc = now_utc - timedelta(minutes=1)
 
-        realtime_df_minute = get_realtime_flight_data()
+        realtime_df_raw_minute = get_realtime_flight_data()
 
-        if not realtime_df_minute.empty:
+        if not realtime_df_raw_minute.empty:
             # Convert scheduleTime to datetime objects (assuming UTC)
-            realtime_df_minute['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute['scheduleTime'], utc=True)
+            realtime_df_minute_raw = realtime_df_raw_minute.copy() # Avoid modifying the original cached data
+            realtime_df_minute_raw['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute_raw['scheduleTime'], utc=True)
 
             # Filter flights scheduled within the last minute
-            recent_flights = realtime_df_minute[realtime_df_minute['scheduleDateTime_dt'] >= one_minute_ago_utc]
+            recent_flights_raw = realtime_df_minute_raw[realtime_df_minute_raw['scheduleDateTime_dt'] >= one_minute_ago_utc]
 
-            if not recent_flights.empty:
+            if not recent_flights_raw.empty:
                 # Merge with airport data for coordinates
-                recent_flights = recent_flights.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
-                                                    how='left', left_on='destination', right_on='iata_code',
-                                                    suffixes=('_API', '_Airport'))
+                recent_flights = recent_flights_raw.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
+                                                            how='left', left_on='destination', right_on='iata_code',
+                                                            suffixes=('_API', '_Airport'))
                 recent_flights = recent_flights.dropna(subset=["latitude_deg", "longitude_deg"])
                 visualize_flights(recent_flights, is_realtime=True)
             else:
