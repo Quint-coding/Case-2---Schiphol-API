@@ -143,7 +143,7 @@ def visualize_flights_from_schiphol(df, selected_time):
                            'destination' (for departures) or 'origin' (for arrivals).
         selected_time (str): The specific scheduleDateTime to visualize.
     """
-    selected_flights = df[df["scheduleDateTime"] == selected_time].copy()
+    selected_flights = df[df["scheduleTime"] == selected_time].copy()
     if selected_flights.empty:
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
@@ -240,8 +240,8 @@ if options == 'Statistiek':
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
-    df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
-    available_times = df['scheduleDateTime'].unique()
+    df['scheduleTime'] = df['scheduleTime'].astype(str)
+    available_times = df['scheduleTime'].unique()
 
     selected_time = st.select_slider("Select a Time:", available_times)
 
