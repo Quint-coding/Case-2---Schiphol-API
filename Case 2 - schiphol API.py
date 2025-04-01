@@ -21,7 +21,7 @@ headers = {
     'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
 }
 
-@st.cache_data(ttl=600)  # Cache function for 10 minutes
+@st.cache_data(ttl=3600)  # Cache function for 10 minutes
 def get_flight_data():
     all_flights = []  # List to store all pages of flight data
     max_pages = 20  # Limit to 5 pages
@@ -221,7 +221,7 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Display the PyDeck chart in Streamlit
     st.pydeck_chart(r)
 
-if options == 'Statistiek1':
+if options == 'Statistiek':
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
         st.header('Aantal vluchten')
@@ -246,20 +246,21 @@ elif options == 'Geografische map':
     container = st.container()
 
     with container:
-        col1, col2 = st.columns((1,1))  # Adjust the ratio of widths as needed
+        col1, col2 = st.columns([1,1])  # Adjust the ratio of widths as needed
 
-        flight_deck = visualize_flights_from_schiphol(df, selected_time)
-        col1.plotly_chart(flight_deck, use_container_width=True)
+        with col1:
+            flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
-        col2.markdown(
-                """
-                ### Legend:
-                - <span style="color:blue">Blue</span>: Departing Flights
-                - <span style="color:green">Green</span>: Arriving Flights
-                """,
-                unsafe_allow_html=True,
-                use_container_width=True
-            )
+        with col2:
+            st.markdown(
+                    """
+                    ### Legend:
+                    - <span style="color:blue">Blue</span>: Departing Flights
+                    - <span style="color:green">Green</span>: Arriving Flights
+                    """,
+                    unsafe_allow_html=True,
+                    use_container_width=True
+                )
 
 
 elif options == 'Aanpassingen':
