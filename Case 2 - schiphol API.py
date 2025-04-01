@@ -250,6 +250,8 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
     # seperate page into 2 columns
     st.title("Flight Visualization with PyDeck")
 
+    selected_time = st.select_slider("Kies een tijdstip", options=df["scheduleDateTime"].dropna().unique())
+
     flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
     # Create a container to hold the chart and legend side by side
