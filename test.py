@@ -19,8 +19,8 @@ headers = {
 }
 # --- Data Fetching and Caching ---
 @st.cache_data(ttl=60)  # Cache for 1 minute for real-time updates
-def get_realtime_flight_data():
-    all_flights = []
+def get_raw_realtime_flight_data():
+    """Fetches raw real-time flight data from the API."""
     url = f"{url_base}?includedelays=false&sort=%2BscheduleTime"
     response = requests.get(url, headers=headers)
     response.raise_for_status()  # Raise an exception for HTTP errors
@@ -28,7 +28,7 @@ def get_realtime_flight_data():
     return pd.DataFrame(data["flights"])
 
 @st.cache_data(ttl=3600)  # Cache function for 1 hour for the main dataset
-def get_flight_data():
+def get_processed_flight_data():
     all_flights = []
     max_pages = 5  # Reduced for faster initial load
 
@@ -41,8 +41,10 @@ def get_flight_data():
         time.sleep(0.5)  # Reduced sleep
 
     df = pd.DataFrame(all_flights)
+    return _process_flight_data(df)
 
-    # Data processing (moved outside caching for real-time)
+def _process_flight_data(df):
+    """Processes the raw flight data."""
     df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0])
     df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]))
     df['visa'] = df['route'].apply(lambda x: x.get('visa', [None]))
@@ -52,16 +54,13 @@ def get_flight_data():
     )
     df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]))
     df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]))
-
-    # Merge with airport data
-    Airports = pd.read_csv('world-airports.csv')
-    Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
-    df = df.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
-
+    df['flightDirection'] = df['flightName'].str[2]  # Extract flight direction (A or D)
     return df
 
 # --- Load Data ---
-df = get_flight_data()
+df_processed = get_processed_flight_data()
+
+st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
 # --- Sidebar Navigation ---
 st.sidebar.title("📍 Navigatie")
@@ -198,26 +197,24 @@ if options == 'Statistiek':
     st.title('Statistiek')
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden"])
     with tab1:
-        vlucht1(df)
+        vlucht1(df_processed)
     with tab2:
-        vlucht2(df)
+        vlucht2(df_processed)
     with tab3:
-        vlucht3(df)
+        vlucht3(df_processed)
     with tab4:
-        vlucht4(df)
+        vlucht4(df_processed)
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
     geo_tab1, geo_tab2, geo_tab3 = st.tabs(["Huidige vluchten", "Real-time vluchten", "Laatste Minuut"])
 
-    st.write(df)
-
     with geo_tab1:
         st.header("Huidige vluchten")
-        df['scheduleTime'] = df['scheduleTime'].astype(str)
-        available_times = df['scheduleTime'].unique()
+        df_processed['scheduleTime'] = df_processed['scheduleTime'].astype(str)
+        available_times = df_processed['scheduleTime'].unique()
         selected_time = st.select_slider("Select a Time:", available_times)
-        visualize_flights(df[df["scheduleTime"] == selected_time])
+        visualize_flights(df_processed[df_processed["scheduleTime"] == selected_time])
         with st.expander("Legenda"):
             st.markdown(
                 """
@@ -230,10 +227,11 @@ elif options == 'Geografische map':
 
     with geo_tab2:
         st.header("Real-time vluchten (Alle actuele vluchten)")
-        realtime_df_raw = get_realtime_flight_data()
+        realtime_df_raw = get_raw_realtime_flight_data()
         if not realtime_df_raw.empty:
+            realtime_df = _process_flight_data(realtime_df_raw.copy()) # Process the real-time data
             # Merge with airport data for coordinates
-            realtime_df = realtime_df_raw.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
+            realtime_df = realtime_df.merge(df_processed[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
                                                 how='left', left_on='destination', right_on='iata_code',
                                                 suffixes=('_API', '_Airport'))
             realtime_df = realtime_df.dropna(subset=["latitude_deg", "longitude_deg"])
@@ -255,19 +253,21 @@ elif options == 'Geografische map':
         now_utc = datetime.utcnow()
         one_minute_ago_utc = now_utc - timedelta(minutes=1)
 
-        realtime_df_raw_minute = get_realtime_flight_data()
+        realtime_df_raw_minute = get_raw_realtime_flight_data()
 
         if not realtime_df_raw_minute.empty:
+            # Process the real-time data
+            realtime_df_minute_processed = _process_flight_data(realtime_df_raw_minute.copy())
+
             # Convert scheduleTime to datetime objects (assuming UTC)
-            realtime_df_minute_raw = realtime_df_raw_minute.copy() # Avoid modifying the original cached data
-            realtime_df_minute_raw['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute_raw['scheduleTime'], utc=True)
+            realtime_df_minute_processed['scheduleDateTime_dt'] = pd.to_datetime(realtime_df_minute_processed['scheduleTime'], utc=True)
 
             # Filter flights scheduled within the last minute
-            recent_flights_raw = realtime_df_minute_raw[realtime_df_minute_raw['scheduleDateTime_dt'] >= one_minute_ago_utc]
+            recent_flights = realtime_df_minute_processed[realtime_df_minute_processed['scheduleDateTime_dt'] >= one_minute_ago_utc]
 
-            if not recent_flights_raw.empty:
+            if not recent_flights.empty:
                 # Merge with airport data for coordinates
-                recent_flights = recent_flights_raw.merge(df[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
+                recent_flights = recent_flights.merge(df_processed[['destination', 'latitude_deg', 'longitude_deg', 'iata_code']],
                                                             how='left', left_on='destination', right_on='iata_code',
                                                             suffixes=('_API', '_Airport'))
                 recent_flights = recent_flights.dropna(subset=["latitude_deg", "longitude_deg"])
