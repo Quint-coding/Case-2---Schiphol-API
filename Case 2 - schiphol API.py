@@ -246,8 +246,9 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
 
     min_time = pd.to_datetime(available_times).min()
     max_time = pd.to_datetime(available_times).max()
-    default_time_index = available_times.index(available_times[len(available_times) // 2]) if available_times else 0
-    default_time = pd.to_datetime(available_times[default_time_index]) if available_times else min_time
+
+    # Use min_time as a safe default Timestamp
+    default_time = min_time
 
     selected_time = st.slider(
         "Select a Time:",
