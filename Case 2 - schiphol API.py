@@ -142,8 +142,7 @@ def visualize_flights_from_schiphol(df, selected_time):
                            'destination' (for departures) or 'origin' (for arrivals).
         selected_time (str): The specific scheduleDateTime to visualize.
     """
-
-    selected_flights = df[df["scheduleTime"] == selected_time].copy()
+    selected_flights = df[df["scheduleDateTime"] == selected_time].copy()
     if selected_flights.empty:
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
@@ -170,7 +169,7 @@ def visualize_flights_from_schiphol(df, selected_time):
         tooltip={
             "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
                     "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                    "<b>Time:</b> {scheduleTime}" +
+                    "<b>Time:</b> {scheduleDateTime}" +
                     ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
@@ -227,7 +226,7 @@ def visualize_flights_from_schiphol(df, selected_time):
 
 
 if options == 'Statistiek':
-    tab1, tab2, tab3 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot'])
+    tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
         st.header('Aantal vluchten')
         vlucht1(df)
@@ -237,41 +236,32 @@ if options == 'Statistiek':
     with tab3:
         st.header('Interactieve plot')
         vlucht3(df)
-    
-elif options == "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij":
-    vlucht4(df)
-elif options == 'vluchten per tijdstip geografische map':
-   # Definieer selected_time HIER met st.select_slider
-    selected_time = st.select_slider("Kies een tijdstip", options=gdf["scheduleDateTime"].dropna().unique())
-    vlucht5(gdf, selected_time)  # Nu is selected_time gedefinieerd
-
+    with tab4:
+        st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
+        vlucht4(df)
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
     # seperate page into 2 columns
-    st.title("Flight Visualization with PyDeck")
+    col1, col2 = st.columns(2)
 
-    selected_time = st.select_slider("Kies een tijdstip", options=df["scheduleDateTime"].dropna().unique())
+    with col1:
+        # add the pydeck arclayerplot
+        df['scheduleTime'] = df['scheduleTime'].astype(str)
+        available_times = df['scheduleTime'].unique()
 
-    flight_deck = visualize_flights_from_schiphol(df, selected_time)
-
-    # Create a container to hold the chart and legend side by side
-    container = st.container()
-
-    with container:
-        col1, col2 = st.columns([3, 1])  # Adjust the ratio of widths as needed
-
-        with col1:
-            st.pydeck_chart(flight_deck)
-
-        with col2:
-            st.markdown(
-                """
-                ### Legend:
-                - <span style="color:blue">Blue to Transparent</span>: Flights Departing from Schiphol
-                - <span style="color:green">Green to Green</span>: Flights Arriving at Schiphol
-                """,
-                unsafe_allow_html=True,
-                ow_html=True
+        st.title("Flight Visualization with PyDeck")
+        selected_time = st.select_slider("Select a Time:", available_times)
+        visualize_flights_from_schiphol(df, selected_time)
+        
+    with col2:
+        # Add a legend using Streamlit's markdown
+        st.markdown(
+        """
+        ### Legend:
+        - <span style="color:blue">Blue</span>: Departing Flights
+        - <span style="color:green">Green</span>: Arriving Flights
+        """,
+        unsafe_allow_html=True,
     )
 
 elif options == 'Aanpassingen':
