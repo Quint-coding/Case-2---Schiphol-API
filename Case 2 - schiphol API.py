@@ -248,7 +248,7 @@ elif options == 'Geografische map':
     container = st.container()
 
     with container:
-        col1, col2 = st.columns([1,0.1])  # Adjust the ratio of widths as needed
+        col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
 
         with col1:
             flight_deck = visualize_flights_from_schiphol(df, selected_time)
