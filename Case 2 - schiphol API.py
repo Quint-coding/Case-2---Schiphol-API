@@ -236,23 +236,6 @@ if options == 'Statistiek1':
         st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
         vlucht4(df)
 
-if options == 'Statistiek':
-    col1, col2 = st.columns(2)  # Create two columns
-
-    with col1:
-        st.header('Aantal vluchten')
-        vlucht1(df)
-
-        st.header('Interactieve plot')
-        vlucht3(df)
-
-    with col2:
-        st.header('Vluchten per tijdstip')
-        vlucht2(df)
-
-        st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
-        vlucht4(df)
-
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)

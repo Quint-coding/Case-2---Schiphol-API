@@ -4,3 +4,4 @@ backgroundColor="#0D0D0D"
 secondaryBackgroundColor="#808080"
 textColor="#F0F2F6"
 font="sans serif"
+layout='wide'
