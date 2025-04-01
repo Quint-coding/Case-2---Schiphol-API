@@ -53,6 +53,12 @@ def get_flight_data():
 
     return df
 
+def update_data():
+    while True:
+        new_data = get_flight_data()
+        st.session_state['realtime_flight_data'] = new_data
+        time.sleep(60)
+
 # Get cached data
 df = get_flight_data()
 
@@ -225,12 +231,12 @@ def visualize_flights_from_schiphol(df, selected_time):
 if options == 'Statistiek':
 
     st.title('Statistiek')
-    tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
+    tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden"])
     with tab1:
         vlucht1(df)
 
     with tab2:
-        
+
         vlucht2(df)
     with tab3:
 
@@ -240,30 +246,52 @@ if options == 'Statistiek':
         vlucht4(df)
 
 elif options == 'Geografische map':
-    st.title("Flight Visualization with PyDeck")
-    df['scheduleTime'] = df['scheduleTime'].astype(str)
-    available_times = df['scheduleTime'].unique()
 
-    selected_time = st.select_slider("Select a Time:", available_times)
+    geotab1, geotab2 = st.tabs(['Recente vluchten', 'Actuele vluchten'])
 
-    container = st.container()
+    with geotab1:
+        st.title("Flight Visualization with PyDeck")
+        df['scheduleTime'] = df['scheduleTime'].astype(str)
+        available_times = df['scheduleTime'].unique()
 
-    with container:
-        col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
+        selected_time = st.select_slider("Select a Time:", available_times)
 
-        with col1:
-            flight_deck = visualize_flights_from_schiphol(df, selected_time)
+        container = st.container()
 
-        with col2:
-            st.markdown(
-                    """
-                    ### Legend:
-                    - <span style="color:blue">Blue</span>:     Departing Flights
-                    - <span style="color:green">Green</span>:   Arriving Flights
-                    """,
-                    unsafe_allow_html=True
-                )
+        with container:
+            col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
 
+            with col1:
+                flight_deck = visualize_flights_from_schiphol(df, selected_time)
+
+            with col2:
+                st.markdown(
+                        """
+                        ### Legend:
+                        - <span style="color:blue">Blue</span>:     Departing Flights
+                        - <span style="color:green">Green</span>:   Arriving Flights
+                        """,
+                        unsafe_allow_html=True
+                    )
+    with geotab2:
+        st.header("Real-time vluchten (Updated every minute)")
+        if not st.session_state['realtime_flight_data'].empty:
+            realtime_arc_layer = pdk.Layer(
+                "ArcLayer",
+                data=st.session_state['realtime_flight_data'],
+                get_source_position=["departure_longitude", "departure_latitude"],
+                get_target_position=["arrival_longitude", "arrival_latitude"],
+                get_source_color=[0, 128, 255, "count * 20"],  # Different color
+                get_target_color=[255, 128, 0, "count * 20"],  # Different color
+                get_width=5,
+                opacity=0.6,
+            )
+            view_state_realtime = pdk.ViewState(
+                latitude=40.7128, longitude=-74.0060, zoom=10, pitch=0
+            )
+            st.pydeck_chart(pdk.Deck(layers=[realtime_arc_layer], initial_view_state=view_state_realtime))
+        else:
+            st.info("Fetching real-time flight data...")
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
