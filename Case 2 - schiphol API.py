@@ -227,16 +227,16 @@ if options == 'Statistiek':
     st.title('Statistiek')
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
-        st.header('Aantal vluchten')
         vlucht1(df)
+
     with tab2:
-        st.header('Vluchten per tijdstip')
+        
         vlucht2(df)
     with tab3:
-        st.header('Interactieve plot')
+
         vlucht3(df)
     with tab4:
-        st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
+
         vlucht4(df)
 
 elif options == 'Geografische map':
