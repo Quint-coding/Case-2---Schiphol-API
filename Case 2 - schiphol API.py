@@ -258,8 +258,7 @@ elif options == 'Geografische map':
                     - <span style="color:blue">Blue</span>: Departing Flights
                     - <span style="color:green">Green</span>: Arriving Flights
                     """,
-                    unsafe_allow_html=True,
-                    use_container_width=True
+                    unsafe_allow_html=True
                 )
 
 
