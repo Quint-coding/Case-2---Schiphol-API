@@ -241,7 +241,7 @@ if options == 'Statistiek':
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
-    available_times = df['scheduleTime'].unique()
+    available_times = df['scheduleDateTime'].unique()
 
     selected_time = st.select_slider("Select a Time:", available_times)
 
