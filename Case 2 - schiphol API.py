@@ -248,11 +248,10 @@ elif options == 'Geografische map':
     with container:
         col1, col2 = st.columns([1, 1])  # Adjust the ratio of widths as needed
 
-        with col1:
-            flight_deck = visualize_flights_from_schiphol(df, selected_time, use_container_width=True)
+        flight_deck = visualize_flights_from_schiphol(df, selected_time)
+        col1.plotly_chart(flight_deck, use_container_width=True)
 
-        with col2:
-            st.markdown(
+        col2.markdown(
                 """
                 ### Legend:
                 - <span style="color:blue">Blue</span>: Departing Flights
