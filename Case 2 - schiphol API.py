@@ -222,15 +222,6 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Display the PyDeck chart in Streamlit
     st.pydeck_chart(r)
 
-    # Add a legend using Streamlit's markdown
-    st.markdown(
-        """
-        ### Legend:
-        - <span style="color:blue">Blue to Transparent</span>: Flights Departing from Schiphol
-        - <span style="color:green">Green to Green</span>: Flights Arriving at Schiphol
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 
@@ -255,16 +246,29 @@ elif options == 'vluchten per tijdstip geografische map':
 
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
-    # Convert scheduleDateTime to string for easy selection
-    st.write(df)
-    
-    df['scheduleTime'] = df['scheduleTime'].astype(str)
-    available_times = df['scheduleTime'].unique()
+    # seperate page into 2 columns
+    col1, col2 = st.columns(3)
 
-    st.title("Flight Visualization with PyDeck")
-    selected_time = st.select_slider("Select a Time:", available_times)
+    with col1:
+        # add the pydeck arclayerplot
+        df['scheduleTime'] = df['scheduleTime'].astype(str)
+        available_times = df['scheduleTime'].unique()
 
-    visualize_flights_from_schiphol(df, selected_time)
+        st.title("Flight Visualization with PyDeck")
+        selected_time = st.select_slider("Select a Time:", available_times)
+        visualize_flights_from_schiphol(df, selected_time)
+        
+    with col2:
+        # Add a legend using Streamlit's markdown
+        st.markdown(
+        """
+        ### Legend:
+        - <span style="color:blue">Blue</span>: Departing Flights
+        - <span style="color:green">Green</span>: Arriving Flights
+        """,
+        unsafe_allow_html=True,
+    )
+
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
     st.write('Als eerst hebben wij het bestand in een github repo gezet om makkelijk aanpassingen te maken en daarna is ook het kleuren thema veranderd.')
