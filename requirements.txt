@@ -1,1 +1,10 @@
-streamlit>=1.26.0
+streamlit
+numpy
+pandas
+pydeck
+datetime
+plotly
+scikit-learn
+scipy
+matplotlib
+seaborn
