@@ -60,8 +60,6 @@ def _process_flight_data(df):
 # --- Load Data ---
 df_processed = get_processed_flight_data()
 
-st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
-
 # --- Sidebar Navigation ---
 st.sidebar.title("📍 Navigatie")
 options = st.sidebar.radio("Ga naar", ['Statistiek',
