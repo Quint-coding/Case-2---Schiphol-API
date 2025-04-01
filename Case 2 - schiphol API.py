@@ -128,38 +128,7 @@ df["flight_number"] = df["scheduleDateTime"].rank(method="first").astype(int)
 # Filter nan waarde bij cordinaten
 df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 
-#  GeoDataFrame rij maken van cordinaten en er een gpd van maken
-df["geometry"] = [Point(xy) for xy in zip(df["longitude_deg"], df["latitude_deg"])]
-gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
 
-# Basis wereldkaart inladen bron: https://www.naturalearthdata.com/downloads/110m-cultural-vectors/
-world = gpd.read_file('ne_50m_admin_0_countries.shp')
-def vlucht5(gdf, selected_time):
-    # Filter de vluchten op basis van de geselecteerde tijd
-    selected_flights = gdf[gdf["scheduleDateTime"] == selected_time] # Gebruik gdf, niet dataframe
-
-    # Maak een plot
-    fig, ax = plt.subplots(figsize=(12, 6)) # fig en ax moeten binnen de functie worden aangemaakt
-    world.plot(ax=ax, color="lightgray")  # Wereldkaart plotten
-
-    # Fixeer assenlimieten
-    ax.set_xlim(-180, 180)
-    ax.set_ylim(-90, 90)
-    ax.set_aspect('equal')
-
-    # Plot de geselecteerde vluchten
-    selected_flights.plot(ax=ax, markersize=50, color="blue", alpha=0.6)
-
-    # Voeg labels toe voor bestemmingen
-    for _, row in selected_flights.iterrows():
-        try: # try except toegevoegd voor het geval er geen 'destination' is
-            text = ax.text(row.geometry.x, row.geometry.y, row['destination'], fontsize=9, ha='right', color='white', fontweight='bold')
-            text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'), path_effects.Normal()])
-        except KeyError:
-            pass # doe niets als 'destination' niet bestaat
-
-    # Toon de plot in Streamlit
-    st.pyplot(fig)  # Correcte manier om de plot in Streamlit weer te geven
 
 
 def visualize_flights_pydeck(df, selected_time):
