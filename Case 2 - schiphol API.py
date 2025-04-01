@@ -252,7 +252,7 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
     container = st.container()
 
     with container:
-        col1, col2 = st.columns([3, 1])  # Adjust the ratio of widths as needed
+        col1, col2 = st.columns([2, 1])  # Adjust the ratio of widths as needed
 
         with col1:
             st.pydeck_chart(flight_deck, use_container_width=True) # Ensure chart fills column width
