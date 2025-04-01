@@ -247,7 +247,7 @@ elif options == 'vluchten per tijdstip geografische map':
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
     # seperate page into 2 columns
-    col1, col2 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
         # add the pydeck arclayerplot
@@ -257,7 +257,7 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
         st.title("Flight Visualization with PyDeck")
         selected_time = st.select_slider("Select a Time:", available_times)
         visualize_flights_from_schiphol(df, selected_time)
-        
+
     with col2:
         # Add a legend using Streamlit's markdown
         st.markdown(
