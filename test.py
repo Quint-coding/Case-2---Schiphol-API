@@ -210,6 +210,8 @@ elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
     geo_tab1, geo_tab2, geo_tab3 = st.tabs(["Huidige vluchten", "Real-time vluchten", "Laatste Minuut"])
 
+    st.write(df)
+
     with geo_tab1:
         st.header("Huidige vluchten")
         df['scheduleTime'] = df['scheduleTime'].astype(str)
