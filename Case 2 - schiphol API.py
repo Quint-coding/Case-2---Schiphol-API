@@ -146,11 +146,29 @@ def visualize_flights_from_schiphol(df, selected_time):
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
 
-    # Add Schiphol coordinates as the 'from' location for all selected flights
-    selected_flights['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(selected_flights)
-    selected_flights['to'] = selected_flights.apply(
-        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-    )
+        # Add Schiphol coordinates as the central point
+    selected_flights['schiphol'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(selected_flights)
+
+    # Define colors based on flightDirection
+    def get_arc_color(flight_direction):
+        if flight_direction == 'D':
+            return [0, 0, 255, 200]  # Blue for departing
+        elif flight_direction == 'A':
+            return [0, 255, 0, 200]  # Green for arriving
+        return [128, 128, 128, 100] # Default grey if direction is not A or D
+
+    # Prepare data for ArcLayer
+    selected_flights['color'] = selected_flights['flightDirection'].apply(get_arc_color)
+
+    # Determine source and target based on flightDirection
+    def get_source(row):
+        return row['schiphol'] if row['flightDirection'] == 'D' else [row['longitude_deg'], row['latitude_deg']]
+
+    def get_target(row):
+        return [row['longitude_deg'], row['latitude_deg']] if row['flightDirection'] == 'D' else row['schiphol']
+
+    selected_flights['from'] = selected_flights.apply(get_source, axis=1)
+    selected_flights['to'] = selected_flights.apply(get_target, axis=1)
 
     # Define the PyDeck ArcLayer
     arc_layer = pdk.Layer(
@@ -158,20 +176,20 @@ def visualize_flights_from_schiphol(df, selected_time):
         data=selected_flights,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[255, 255, 0, 200],  # Yellow for departure from Schiphol
-        get_target_color=[0, 128, 255, 200],  # Blue for arrival
+        get_source_color="color",
+        get_target_color="color",
         auto_highlight=True,
         width_scale=0.02,
         width_min_pixels=3,
         tooltip={
-            "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                    "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                    "<b>Time:</b> {scheduleDateTime}" +
-                    ("<br/><b>Destination:</b> {destination}" if "destination" in selected_flights.columns else ""),
+            "html": "<b>Time:</b> {scheduleDateTime}<br/>"
+                    "<b>Direction:</b> {flightDirection}" +
+                    ("<br/><b>Destination:</b> {destination}" if "flightDirection" == 'D' and "destination" in selected_flights.columns else "") +
+                    ("<br/><b>Origin:</b> {origin}" if "flightDirection" == 'A' and "origin" in selected_flights.columns else ""),
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
     )
-
+    
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
         longitude=SCHIPHOL_LON,
