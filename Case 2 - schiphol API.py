@@ -131,11 +131,11 @@ df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
-def visualize_flights_from_schiphol(df, selected_time):
+def visualize_flights_schiphol_direction_with_legend(df, selected_time):
     """
     Visualizes flight paths to and from Schiphol with color-coded arcs
     based on flight direction (A for arrival, D for departure) using pydeck
-    in Streamlit. Also includes destination/origin markers.
+    in Streamlit, and includes a legend.
 
     Args:
         df (pd.DataFrame): DataFrame containing flight data with
@@ -283,6 +283,16 @@ def visualize_flights_from_schiphol(df, selected_time):
 
     # Display the PyDeck chart in Streamlit
     st.pydeck_chart(r)
+
+    # Add a legend using Streamlit's markdown
+    st.markdown(
+        """
+        ### Legend:
+        - <span style="color:blue">Blue</span>: Flights Departing from Schiphol
+        - <span style="color:green">Green</span>: Flights Arriving at Schiphol
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 
