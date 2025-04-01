@@ -60,7 +60,7 @@ df = get_flight_data()
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
 options = st.sidebar.radio("Ga naar", ['Statistiek',
-                                       'vluchten per tijdstip geografische map (pydeck)', 
+                                       'Geografische map', 
                                        'Aanpassingen'])
 
 def vlucht1(dataframe):
@@ -221,9 +221,6 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Display the PyDeck chart in Streamlit
     st.pydeck_chart(r)
 
-
-
-
 if options == 'Statistiek':
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
@@ -239,22 +236,22 @@ if options == 'Statistiek':
         st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
         vlucht4(df)
 
-elif options == 'vluchten per tijdstip geografische map (pydeck)':
+elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
     df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
     available_times = df['scheduleDateTime'].unique()
 
     st.title("Flight Visualization with PyDeck")
     selected_time = st.select_slider("Select a Time:", available_times)
-
-    flight_deck = visualize_flights_from_schiphol(df, selected_time)
-
+    
     container = st.container()
 
     with container:
         col1, col2 = st.columns([2, 1])  # Adjust the ratio of widths as needed
 
         with col1:
+            flight_deck = visualize_flights_from_schiphol(df, selected_time)
+
             st.pydeck_chart(flight_deck, use_container_width=True) # Ensure chart fills column width
 
         with col2:
