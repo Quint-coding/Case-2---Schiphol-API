@@ -151,55 +151,53 @@ def visualize_flights_from_schiphol(df, selected_time):
     departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
     arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
 
-    if departing:
-        # Prepare data for Departing ArcLayer (Blue to Transparent)
-        departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
-        departing['to'] = departing.apply(
-            lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-        )
+    # Prepare data for Departing ArcLayer (Blue to Transparent)
+    departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
+    departing['to'] = departing.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    departing_arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=departing,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
+        get_target_color=[0, 0, 0, 0],      # Transparent target for departing (Destination)
+        auto_highlight=True,
+        width_scale=0.02,
+        width_min_pixels=3,
+        tooltip={
+            "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
+    )
 
-        departing_arc_layer = pdk.Layer(
-            "ArcLayer",
-            data=departing,
-            get_source_position="from",
-            get_target_position="to",
-            get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
-            get_target_color=[0, 255, 0, 200],  # Transparent target for departing (Destination)
-            auto_highlight=True,
-            width_scale=0.02,
-            width_min_pixels=3,
-            tooltip={
-                "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                        "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                        "<b>Time:</b> {scheduleDateTime}" +
-                        ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
-                "style": "background-color:steelblue; color:white; font-family: Arial;",
-            },
-        )
-    elif arriving:
-        # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
-        arriving['from'] = arriving.apply(
-            lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-        )
-        arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
-        arriving_arc_layer = pdk.Layer(
-            "ArcLayer",
-            data=arriving,
-            get_source_position="from",
-            get_target_position="to",
-            get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
-            get_target_color=[0, 0, 255, 200],  # Green target for arriving (Schiphol)
-            auto_highlight=True,
-            width_scale=0.02,
-            width_min_pixels=3,
-            tooltip={
-                "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
-                        f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                        "<b>Time:</b> {scheduleDateTime}" +
-                        ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
-                "style": "background-color:steelblue; color:white; font-family: Arial;",
-            },
-        )
+    # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
+    arriving['from'] = arriving.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
+    arriving_arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=arriving,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
+        get_target_color=[0, 255, 0, 200],  # Green target for arriving (Schiphol)
+        auto_highlight=True,
+        width_scale=0.02,
+        width_min_pixels=3,
+        tooltip={
+            "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
+                    f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
+    )
 
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
