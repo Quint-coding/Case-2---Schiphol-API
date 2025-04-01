@@ -247,28 +247,12 @@ elif options == 'vluchten per tijdstip geografische map':
 
 
 elif options == 'vluchten per tijdstip geografische map (pydeck)':
-    # Convert scheduleDateTime to string for easy selection
-    df['scheduleDateTime'] = df['scheduleDateTime'].astype(str)
-    available_times = sorted(df['scheduleDateTime'].unique())
-
+    # seperate page into 2 columns
     st.title("Flight Visualization with PyDeck")
-
-    min_time = pd.to_datetime(available_times).min()
-    max_time = pd.to_datetime(available_times).max()
-    default_time_index = available_times.index(available_times[len(available_times) // 2]) if available_times else 0
-    default_time = pd.to_datetime(available_times[default_time_index]) if available_times else min_time
-
-    selected_time = st.slider(
-        "Select Time:",
-        min_value=min_time,
-        max_value=max_time,
-        value=default_time,
-        format="YYYY-MM-DD HH:mm:ss+02:00",
-        step=pd.Timedelta("1 minute")
-    ).strftime("%Y-%m-%d %H:%M:%S+02:00")
 
     flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
+    # Create a container to hold the chart and legend side by side
     container = st.container()
 
     with container:
@@ -285,7 +269,8 @@ elif options == 'vluchten per tijdstip geografische map (pydeck)':
                 - <span style="color:green">Green to Green</span>: Flights Arriving at Schiphol
                 """,
                 unsafe_allow_html=True,
-            )
+                ow_html=True
+    )
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
