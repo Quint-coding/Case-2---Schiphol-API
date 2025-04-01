@@ -149,13 +149,12 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Add Schiphol coordinates as the central point
     selected_flights['schiphol'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(selected_flights)
 
-    # Define source and target colors based on flightDirection
-    def get_source_color(flight_direction):
-        if flight_direction == 'D':
-            return [0, 0, 255, 200]  # Blue for departing source
-        elif flight_direction == 'A':
-            return [0, 255, 0, 200]  # Green for arriving source
-        return [128, 128, 128, 100] # Default grey
+    def get_target_color(flight_direction):
+            if flight_direction == 'D':
+                return [0, 0, 0, 0]      # Transparent target for departing (Destination)
+            elif flight_direction == 'A':
+                return [0, 255, 0, 200]  # Green target for arriving (Schiphol)
+            return [128, 128, 128, 100] # Default grey
 
     def get_target_color():
         return [0, 0, 0, 0]  # Transparent target color for fading
