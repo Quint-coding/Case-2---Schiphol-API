@@ -9,6 +9,8 @@ scipy
 matplotlib
 seaborn
 
+pydeck
+
 statsmodels
 shapely
 ipywidgets
