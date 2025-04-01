@@ -129,16 +129,18 @@ df["flight_number"] = df["scheduleDateTime"].rank(method="first").astype(int)
 df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 
 
+# Schiphol Airport Coordinates
+SCHIPHOL_LON = 4.763889
+SCHIPHOL_LAT = 52.308611
 
-
-def visualize_flights_pydeck(df, selected_time):
+def visualize_flights_from_schiphol(df, selected_time):
     """
-    Visualizes flight paths at a specific time using pydeck's ArcLayer in Streamlit.
+    Visualizes flight paths departing from Schiphol at a specific time
+    using pydeck's ArcLayer in Streamlit.
 
     Args:
         df (pd.DataFrame): DataFrame containing flight data with 'longitude_deg',
-                           'latitude_deg', 'departure_longitude_deg',
-                           'departure_latitude_deg', and optionally 'destination'.
+                           'latitude_deg', and 'scheduleDateTime'.
         selected_time (str): The specific scheduleDateTime to visualize.
     """
     selected_flights = df[df["scheduleDateTime"] == selected_time].copy()
@@ -146,14 +148,11 @@ def visualize_flights_pydeck(df, selected_time):
         st.warning(f"No flights found for the selected time: {selected_time}")
         return
 
-    # Create 'from' and 'to' coordinates for the ArcLayer
-    selected_flights['from'] = selected_flights.apply(
-        lambda row: [row['departure_longitude_deg'], row['departure_latitude_deg']], axis=1
-    )
+    # Add Schiphol coordinates as the 'from' location for all selected flights
+    selected_flights['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(selected_flights)
     selected_flights['to'] = selected_flights.apply(
         lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
     )
-
     # Define the PyDeck ArcLayer
     arc_layer = pdk.Layer(
         "ArcLayer",
