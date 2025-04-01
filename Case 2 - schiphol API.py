@@ -151,7 +151,7 @@ def visualize_flights_from_schiphol(df, selected_time):
     departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
     arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
 
-    if selected_flights[selected_flights['flightDirection'] == 'A']:
+    if departing:
         # Prepare data for Departing ArcLayer (Blue to Transparent)
         departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
         departing['to'] = departing.apply(
@@ -176,7 +176,7 @@ def visualize_flights_from_schiphol(df, selected_time):
                 "style": "background-color:steelblue; color:white; font-family: Arial;",
             },
         )
-    elif selected_flights[selected_flights['flightDirection'] == 'D']:
+    elif arriving:
         # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
         arriving['from'] = arriving.apply(
             lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
