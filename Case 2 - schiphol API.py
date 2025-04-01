@@ -221,7 +221,7 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Display the PyDeck chart in Streamlit
     st.pydeck_chart(r)
 
-if options == 'Statistiek':
+if options == 'Statistiek1':
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij"])
     with tab1:
         st.header('Aantal vluchten')
@@ -233,6 +233,23 @@ if options == 'Statistiek':
         st.header('Interactieve plot')
         vlucht3(df)
     with tab4:
+        st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
+        vlucht4(df)
+
+if options == 'Statistiek':
+    col1, col2 = st.columns(2)  # Create two columns
+
+    with col1:
+        st.header('Aantal vluchten')
+        vlucht1(df)
+
+        st.header('Interactieve plot')
+        vlucht3(df)
+
+    with col2:
+        st.header('Vluchten per tijdstip')
+        vlucht2(df)
+
         st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
         vlucht4(df)
 
