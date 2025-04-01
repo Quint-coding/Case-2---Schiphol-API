@@ -173,16 +173,16 @@ def visualize_flights_from_schiphol(df, selected_time):
         },
     )
 
-    # Get bounds for initial view state
-    min_lon = min(selected_flights['departure_longitude_deg'].min(), selected_flights['longitude_deg'].min())
-    max_lon = max(selected_flights['departure_longitude_deg'].max(), selected_flights['longitude_deg'].max())
-    min_lat = min(selected_flights['departure_latitude_deg'].min(), selected_flights['latitude_deg'].min())
-    max_lat = max(selected_flights['departure_latitude_deg'].max(), selected_flights['latitude_deg'].max())
+    # Adjust bounds to include Schiphol
+    min_lon = min(min_lon, SCHIPHOL_LON - 1)  # Add a small buffer
+    max_lon = max(max_lon, SCHIPHOL_LON + 1)
+    min_lat = min(min_lat, SCHIPHOL_LAT - 1)
+    max_lat = max(max_lat, SCHIPHOL_LAT + 1)
 
     # Calculate center and zoom level for initial view
     center_lon = (min_lon + max_lon) / 2
     center_lat = (min_lat + max_lat) / 2
-    initial_zoom = 2  # Adjust as needed
+    initial_zoom = 4  # Adjust as needed
 
     view_state = pdk.ViewState(
         latitude=center_lat,
