@@ -237,11 +237,17 @@ def visualize_flights_from_schiphol(df, selected_time):
 
 
 if options == 'Aantal vluchten':
-    vlucht1(df)
-elif options == 'Vluchten per tijdstip':
-    vlucht2(df)
-elif options == 'Interactieve plot':
-    vlucht3(df)
+    tab1, tab2, tab3 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot'])
+    with tab1:
+        st.header('Vluchten per tijdstip')
+        vlucht1(df)
+    with tab2:
+        st.header('Vluchten per tijdstip')
+        vlucht2(df)
+    with tab3:
+        st.header('Interactieve plot')
+        vlucht3(df)
+    
 elif options == "Geplande vs. Werkelijke landingstijden per vluchtmaatschappij":
     vlucht4(df)
 elif options == 'vluchten per tijdstip geografische map':
