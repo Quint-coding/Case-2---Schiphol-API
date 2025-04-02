@@ -318,7 +318,7 @@ elif options == 'Geografische map':
     st.divider()
 
     df['scheduleTime'] = df['scheduleTime'].astype(str)
-    
+    df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'])
     available_times = df['scheduleTime'].unique()
 
     display_option = st.segmented_control("Select Flight Display Mode:", ["All Flights", "By Time"])
