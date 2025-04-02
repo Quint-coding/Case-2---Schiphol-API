@@ -202,17 +202,15 @@ df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
-def visualize_flights_from_schiphol(df, selected_time):
-    # Option to show all flights or filter by time
-    # show_all = st.checkbox("Show all flights", value=True)
-    options= ['All flights', 'By time']
-    show_all = st.segmented_control(
-        "Show all flights or by time", options, selection_mode="single"
-    )
-
-    if show_all:
+def visualize_flights_from_schiphol(df):
+    # Use segmented control for selection
+    options = ["All Flights", "Flights by Time"]
+    selection = st.segmented_control("Select flight display mode:", options)
+    
+    if selection == "All Flights":
         selected_flights = df.copy()
     else:
+        selected_time = st.slider("Select Time", min_value=min(df["scheduleTime"]), max_value=max(df["scheduleTime"]))
         selected_flights = df[df["scheduleTime"] == selected_time].copy()
         if selected_flights.empty:
             st.warning(f"No flights found for the selected time: {selected_time}")
