@@ -249,8 +249,6 @@ def visualize_flights_from_schiphol(df, selected_time):
         }
     )
 
-
-
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
         longitude=SCHIPHOL_LON,
@@ -277,17 +275,20 @@ def visualize_flights_from_schiphol(df, selected_time):
 if options == 'Statistiek':
 
     st.title('Statistiek')
-    tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden"])
+    tab1, tab2 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden"])
     with tab1:
-        vlucht1(df)
+        container = st.container()
+
+    with container:
+        col1, col2 = st.columns([1,1])  # Adjust the ratio of widths as needed
+
+        with col1:
+            vlucht2(df)
+
+        with col2:
+            vlucht1(df)
 
     with tab2:
-
-        vlucht2(df)
-    with tab3:
-
-        vlucht3(df)
-    with tab4:
 
         vlucht4(df)
 
