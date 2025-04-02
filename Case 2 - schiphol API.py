@@ -253,6 +253,15 @@ elif options == 'Geografische map':
 
     selected_time = st.select_slider("Select a Time:", available_times)
 
+    # Convert 'scheduleDateTime' to datetime objects if it's not already
+    df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'])
+
+    # Filter the DataFrame for the selected time to get the corresponding date
+    selected_datetime = df[df['scheduleTime'] == selected_time]['scheduleDateTime'].iloc[0]
+    selected_date = selected_datetime.strftime('%A, %B %d, %Y')
+
+    st.subheader(f"Flights scheduled for: {selected_date} at {selected_time}")
+
     container = st.container()
 
     with container:
