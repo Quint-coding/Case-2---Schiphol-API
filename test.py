@@ -289,13 +289,21 @@ elif options == 'Geografische map':
             st.subheader("Flights Added in the Last Minute")
             now = datetime.now()
             one_minute_ago = now - timedelta(minutes=1)
-            recent_flights = st.session_state['realtime_flight_data'][
-                st.session_state['realtime_flight_data']['scheduleDateTime'] >= one_minute_ago
-            ]
-            if not recent_flights.empty:
-                st.dataframe(recent_flights)
+
+            # Ensure 'scheduleDateTime' is in datetime format
+            if not st.session_state['realtime_flight_data'].empty:
+                st.session_state['realtime_flight_data']['scheduleDateTime'] = pd.to_datetime(
+                    st.session_state['realtime_flight_data']['scheduleDateTime'], errors='coerce'
+                )
+                recent_flights = st.session_state['realtime_flight_data'][
+                    st.session_state['realtime_flight_data']['scheduleDateTime'] >= one_minute_ago
+                ]
+                if not recent_flights.empty:
+                    st.dataframe(recent_flights)
+                else:
+                    st.info("No new flights added in the last minute.")
             else:
-                st.info("No new flights added in the last minute.")
+                st.info("No flight data available to display recent flights.")
     else:
         st.info("No flight data available to display on the map.")
 
