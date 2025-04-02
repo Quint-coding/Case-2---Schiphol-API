@@ -21,7 +21,7 @@ headers = {
 @st.cache_data(ttl=60)  # Cache function for 1 minute
 def get_latest_flight_data():
     all_flights = []  # List to store all pages of flight data
-    max_pages = 100  # Limit to 5 pages
+    max_pages = 10  # Limit to 5 pages
 
     for page in range(max_pages):
         url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
