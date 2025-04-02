@@ -179,18 +179,6 @@ SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
 def visualize_flights_from_schiphol(df, selected_time):
-    """
-    Visualizes flight paths to and from Schiphol using separate ArcLayers
-    for departures (Blue fading out) and arrivals (Origin Green fading to Schiphol Green)
-    using pydeck in Streamlit.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing flight data with
-                           'longitude_deg', 'latitude_deg', 'scheduleDateTime',
-                           and 'flightDirection' ('A' or 'D'), and optionally
-                           'destination' (for departures) or 'origin' (for arrivals).
-        selected_time (str): The specific scheduleDateTime to visualize.
-    """
     selected_flights = df[df["scheduleTime"] == selected_time].copy()
     if selected_flights.empty:
         st.warning(f"No flights found for the selected time: {selected_time}")
@@ -200,55 +188,37 @@ def visualize_flights_from_schiphol(df, selected_time):
     departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
     arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
 
-    # Prepare data for Departing ArcLayer (Blue to Transparent)
+    # Prepare data for Departing ArcLayer
     departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
-    departing['to'] = departing.apply(
-        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-    )
+    departing['to'] = departing.apply(lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1)
     departing_arc_layer = pdk.Layer(
         "ArcLayer",
         data=departing,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
-        get_target_color=[0, 255, 0, 200],      # Transparent target for departing (Destination)
+        get_source_color=[0, 0, 255, 200],
+        get_target_color=[0, 255, 0, 200],
         auto_highlight=True,
         get_width=5,
         pickable=True,
-        tooltip = {
-        "html": "<b>Departing from Schiphol</b><br/>"
-                "<b>Time:</b> {scheduleTime}<br/>"
-                "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
-                "<b>Origin:</b> Schiphol",
-        "style": "background-color:steelblue; color:white; font-family: Arial;",
-        }
     )
 
-
-    # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
-    arriving['from'] = arriving.apply(
-        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-    )
+    # Prepare data for Arriving ArcLayer
+    arriving['from'] = arriving.apply(lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1)
     arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
     arriving_arc_layer = pdk.Layer(
         "ArcLayer",
         data=arriving,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 0, 255, 200],  # Green for arriving source (Origin)
-        get_target_color=[0, 255, 0, 200],  # Green target for arriving (Schiphol)
+        get_source_color=[0, 0, 255, 200],
+        get_target_color=[0, 255, 0, 200],
         auto_highlight=True,
         get_width=5,
         pickable=True,
-        tooltip = {
-            "html": "<b>Arrival at Schiphol</b><br/>"
-                    "<b>Time:</b> {scheduleTime}<br/>"
-                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
-                    "<b>Origin:</b> {country_name}",
-            "style": "background-color:steelblue; color:white; font-family: Arial;",
-        }
     )
 
+    # View state for PyDeck
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
         longitude=SCHIPHOL_LON,
@@ -256,20 +226,32 @@ def visualize_flights_from_schiphol(df, selected_time):
         pitch=50,
     )
 
-    # Create the PyDeck chart with both ArcLayers
-    layers = []
-    if not departing.empty:
-        layers.append(departing_arc_layer)
-    if not arriving.empty:
-        layers.append(arriving_arc_layer)
+    # Tooltip configuration
+    tooltip = {
+        "html": """
+            <b>Flight Information</b><br>
+            <b>Time:</b> {{scheduleTime}}<br>
+            <b>Airline:</b> {{prefixICAO}} {{flightNumber}}<br>
+            <b>Direction:</b> {{flightDirection}}<br>
+            <b>Location:</b> {{longitude_deg}}, {{latitude_deg}}
+        """,
+        "style": {
+            "backgroundColor": "steelblue",
+            "color": "white",
+            "fontFamily": "Arial"
+        }
+    }
 
+    # Create PyDeck chart
+    layers = [layer for layer in [departing_arc_layer, arriving_arc_layer] if layer.data.shape[0] > 0]
     r = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
+        tooltip=tooltip,
         map_style="mapbox://styles/mapbox/dark-v10"
     )
 
-    # Display the PyDeck chart in Streamlit
+    # Display in Streamlit
     st.pydeck_chart(r)
 
 if options == 'Statistiek':
