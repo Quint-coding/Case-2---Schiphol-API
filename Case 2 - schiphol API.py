@@ -320,7 +320,7 @@ elif options == 'Geografische map':
     df['scheduleTime'] = df['scheduleTime'].astype(str)
     available_times = df['scheduleTime'].unique()
 
-    display_option = st.segmented_control("Select Flight Display Mode:", ["All Flights", "By Time"])
+    display_option = st.subheader(st.segmented_control("Select Flight Display Mode:", ["All Flights", "By Time"]))
 
     st.divider()
 
