@@ -204,8 +204,12 @@ SCHIPHOL_LAT = 52.308611
 
 def visualize_flights_from_schiphol(df, selected_time):
     # Option to show all flights or filter by time
-    show_all = st.checkbox("Show all flights", value=True)
+    # show_all = st.checkbox("Show all flights", value=True)
     
+    show_all = st.segmented_control(
+        "Show all flights", options, selection_mode="single"
+    )
+
     if show_all:
         selected_flights = df.copy()
     else:
