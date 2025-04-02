@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.express as px
 import statsmodels.api as sm
 import pandas as pd
+import numpy as np
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
@@ -108,21 +109,60 @@ def vlucht3(dataframe):
         st.plotly_chart(plot)
 
 def vlucht4(dataframe):
-    st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
-
-    luchtvaartmaatschappijen = dataframe['prefixICAO'].unique()
+    st.header("Vertraging per luchtvaartmaatschappij")
+ 
+    luchtvaartmaatschappijen = ["Alle maatschappijen"] + list(dataframe['prefixICAO'].unique())
     opties = st.selectbox("Selecteer een luchtvaartmaatschappij:", luchtvaartmaatschappijen)
-
-    df_filtered = dataframe[dataframe['prefixICAO'] == opties]
-
-    st.plotly_chart(px.scatter(
+ 
+    if opties == "Alle maatschappijen":
+        df_filtered = dataframe.copy()
+    else:
+        df_filtered = dataframe[dataframe['prefixICAO'] == opties].copy()
+ 
+    df_filtered['scheduleDateTime'] = pd.to_datetime(df_filtered['scheduleDateTime'])
+    df_filtered['actualLandingTime'] = pd.to_datetime(df_filtered['actualLandingTime'])
+ 
+    df_filtered['vertraging (min)'] = (df_filtered['actualLandingTime'] - df_filtered['scheduleDateTime']).dt.total_seconds() / 60
+ 
+    # Verwijder rijen met NaN-waarden
+    df_filtered = df_filtered.dropna(subset=['scheduleDateTime', 'vertraging (min)'])
+ 
+    # Sorteer data
+    df_filtered = df_filtered.sort_values(by='scheduleDateTime')
+ 
+    # Zet tijd om naar numerieke waarden voor de regressie
+    df_filtered['timestamp'] = df_filtered['scheduleDateTime'].astype('int64') // 10**9  
+ 
+ 
+    # **Scatterplot maken**
+    fig = px.scatter(
         df_filtered,
         x='scheduleDateTime',
-        y='actualLandingTime',
-        title=f'Geplande vs. Werkelijke landingstijden ({opties})',
-        labels={'scheduleDateTime': 'Geplande tijd', 'actualLandingTime': 'Werkelijke tijd'},
-        hover_name='flightNumber', # Of een andere unieke ID
-        hover_data=['scheduleDateTime', 'actualLandingTime']))
+        y='vertraging (min)',
+        color='prefixICAO' if opties == "Alle maatschappijen" else 'vertraging (min)',  
+        title=f'Vertraging in minuten per vlucht ({opties})',
+        labels={'scheduleDateTime': 'Geplande landingstijd', 'vertraging (min)': 'Vertraging (min)', 'prefixICAO': 'Maatschappij'},
+        hover_data=['flightNumber', 'scheduleDateTime', 'actualLandingTime'],
+        opacity=0.7
+    )
+ 
+ 
+    # Polynomiale trendlijn (indien voldoende punten)**
+    if len(df_filtered) > 10:  # Alleen toepassen als er genoeg data is
+        coeffs = np.polyfit(df_filtered['timestamp'], df_filtered['vertraging (min)'], deg=3)
+        poly = np.poly1d(coeffs)
+        df_filtered['poly_trend'] = poly(df_filtered['timestamp'])
+ 
+        fig.add_trace(go.Scatter(
+            x=df_filtered['scheduleDateTime'],
+            y=df_filtered['poly_trend'],
+            mode='lines',
+            name='Polynomiale Trendlijn',
+            line=dict(color='blue', width=2, dash='dash')
+        ))
+ 
+    st.plotly_chart(fig)
+    st.write(df)
 
 
 # Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
