@@ -11,6 +11,8 @@ import ipywidgets as widgets
 from shapely.geometry import Point
 import matplotlib.patheffects as path_effects
 
+import plotly.graph_objects as go
+
 import pydeck as pdk
 
 st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
