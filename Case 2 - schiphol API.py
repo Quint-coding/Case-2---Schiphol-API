@@ -203,14 +203,13 @@ SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
 def visualize_flights_from_schiphol(df):
-    # Use segmented control for selection
-    options = ["All Flights", "Flights by Time"]
-    selection = st.segmented_control("Select flight display mode:", options)
+    # Option to show all flights or filter by time
+    show_all = st.checkbox("Show all flights", value=True)
     
-    if selection == "All Flights":
+    if show_all:
         selected_flights = df.copy()
     else:
-        selected_time = st.slider("Select Time", min_value=min(df["scheduleTime"]), max_value=max(df["scheduleTime"]))
+        selected_time = st.select_slider("Select Time", options=sorted(df["scheduleTime"].unique()))
         selected_flights = df[df["scheduleTime"] == selected_time].copy()
         if selected_flights.empty:
             st.warning(f"No flights found for the selected time: {selected_time}")
@@ -336,7 +335,7 @@ elif options == 'Geografische map':
         col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
 
         with col1:
-            flight_deck = visualize_flights_from_schiphol(df, selected_time)
+            flight_deck = visualize_flights_from_schiphol(df)
 
         with col2:
             st.markdown(
