@@ -271,24 +271,26 @@ elif options == 'Geografische map':
             container = st.container()
 
             with container:
-                col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
+                col1, col2 = st.columns([1, 0.3])  # Adjust the ratio of widths as needed
 
                 with col1:
                     visualize_flights_from_schiphol(df_map, selected_time)
 
                 with col2:
                     st.markdown(
-                            """
-                            ### Legend:
-                            - <span style="color:blue">Blue</span>:     Departing Flights
-                            - <span style="color:green">Green</span>:   Arriving Flights
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        """
+                        ### Legend:
+                        - <span style="color:blue">Blue</span>:     Departing Flights
+                        - <span style="color:green">Green</span>:   Arriving Flights
+                        """,
+                        unsafe_allow_html=True
+                    )
         with map_tab2:
             st.subheader("Flights Added in the Last Minute")
-            now = datetime.now()
-            one_minute_ago = now - timedelta(minutes=1)
+            now_utc = datetime.now(timezone.utc)  # Get current time in UTC
+            amsterdam_tz = timezone(timedelta(hours=2))  # Define Amsterdam's timezone (UTC+02:00)
+            now_amsterdam = now_utc.astimezone(amsterdam_tz)
+            one_minute_ago_amsterdam = now_amsterdam - timedelta(minutes=1)
 
             # Ensure 'scheduleDateTime' is in datetime format
             if not st.session_state['realtime_flight_data'].empty:
@@ -296,7 +298,7 @@ elif options == 'Geografische map':
                     st.session_state['realtime_flight_data']['scheduleDateTime'], errors='coerce'
                 )
                 recent_flights = st.session_state['realtime_flight_data'][
-                    st.session_state['realtime_flight_data']['scheduleDateTime'] >= one_minute_ago
+                    st.session_state['realtime_flight_data']['scheduleDateTime'] >= one_minute_ago_amsterdam
                 ]
                 if not recent_flights.empty:
                     st.dataframe(recent_flights)
@@ -304,6 +306,7 @@ elif options == 'Geografische map':
                     st.info("No new flights added in the last minute.")
             else:
                 st.info("No flight data available to display recent flights.")
+
     else:
         st.info("No flight data available to display on the map.")
 
