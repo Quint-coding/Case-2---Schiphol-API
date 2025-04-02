@@ -202,14 +202,13 @@ df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
-def visualize_flights_from_schiphol(df):
-    # Use segmented control for selection
-    option = st.radio("Select flight display mode:", ["All Flights", "Flights by Time"], horizontal=True)
+def visualize_flights_from_schiphol(df, selected_time):
+    # Option to show all flights or filter by time
+    show_all = st.checkbox("Show all flights", value=True)
     
-    if option == "All Flights":
+    if show_all:
         selected_flights = df.copy()
     else:
-        selected_time = st.select_slider("Select Time", options=sorted(df["scheduleTime"].unique()))
         selected_flights = df[df["scheduleTime"] == selected_time].copy()
         if selected_flights.empty:
             st.warning(f"No flights found for the selected time: {selected_time}")
@@ -291,7 +290,6 @@ def visualize_flights_from_schiphol(df):
     st.pydeck_chart(r)
 
 
-
 if options == 'Statistiek':
 
     st.title('Statistiek')
@@ -316,6 +314,10 @@ if options == 'Statistiek':
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
+    df['scheduleTime'] = df['scheduleTime'].astype(str)
+    available_times = df['scheduleTime'].unique()
+
+    selected_time = st.select_slider("Select a Time:", available_times)
 
     # Convert 'scheduleDateTime' to datetime objects if it's not already
     df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'])
@@ -332,7 +334,7 @@ elif options == 'Geografische map':
         col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
 
         with col1:
-            flight_deck = visualize_flights_from_schiphol(df)
+            flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
         with col2:
             st.markdown(
