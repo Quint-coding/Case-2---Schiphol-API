@@ -202,18 +202,11 @@ df = df.dropna(subset=["latitude_deg", "longitude_deg"])
 SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
-def visualize_flights_from_schiphol(df):
-    # Option to show all flights or filter by time
-    show_all = st.checkbox("Show all flights", value=True)
-    
-    if show_all:
-        selected_flights = df.copy()
-    else:
-        selected_time = st.select_slider("Select Time", options=sorted(df["scheduleTime"].unique()))
-        selected_flights = df[df["scheduleTime"] == selected_time].copy()
-        if selected_flights.empty:
-            st.warning(f"No flights found for the selected time: {selected_time}")
-            return
+def visualize_flights_from_schiphol(df, selected_time):
+    selected_flights = df[df["scheduleTime"] == selected_time].copy()
+    if selected_flights.empty:
+        st.warning(f"No flights found for the selected time: {selected_time}")
+        return
 
     # Separate departing and arriving flights
     departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
@@ -227,8 +220,8 @@ def visualize_flights_from_schiphol(df):
         data=departing,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 0, 255, 200],
-        get_target_color=[0, 255, 0, 200],
+        get_source_color=[0, 0, 255, 100],
+        get_target_color=[0, 255, 0, 100],
         auto_highlight=True,
         get_width=5,
         pickable=True,
@@ -242,8 +235,8 @@ def visualize_flights_from_schiphol(df):
         data=arriving,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 0, 255, 200],
-        get_target_color=[0, 255, 0, 200],
+        get_source_color=[0, 0, 255, 100],
+        get_target_color=[0, 255, 0, 100],
         auto_highlight=True,
         get_width=5,
         pickable=True,
@@ -261,13 +254,13 @@ def visualize_flights_from_schiphol(df):
     tooltip = {
         "html": """
             <b>Flight Information</b><br>
-            <b>Time:</b> {{scheduleTime}}<br>
-            <b>Airline:</b> {{prefixICAO}} {{flightNumber}}<br>
-            <b>Direction:</b> {{flightDirection}}<br>
-            <b>Location:</b> {{longitude_deg}}, {{latitude_deg}}
+            <b>Time:</b> {scheduleTime}<br>
+            <b>Airline:</b> {prefixICAO}<br>
+            <b>Direction:</b> {flightDirection}<br>
+            <b>To / From:</b> {country_name}
         """,
         "style": {
-            "backgroundColor": "steelblue",
+            "backgroundColor": "grey",
             "color": "white",
             "fontFamily": "Arial"
         }
@@ -335,7 +328,7 @@ elif options == 'Geografische map':
         col1, col2 = st.columns([1,0.3])  # Adjust the ratio of widths as needed
 
         with col1:
-            flight_deck = visualize_flights_from_schiphol(df)
+            flight_deck = visualize_flights_from_schiphol(df, selected_time)
 
         with col2:
             st.markdown(
