@@ -287,7 +287,7 @@ def visualize_flights_from_schiphol(df, selected_time):
 if options == 'Statistiek':
 
     st.title('Statistiek')
-    tab1, tab2 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden"])
+    tab1, tab2, tab3 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden", 'Interactieve plot'])
     with tab1:
         container = st.container()
 
@@ -301,8 +301,10 @@ if options == 'Statistiek':
             vlucht1(df)
 
     with tab2:
-
         vlucht4(df)
+
+    with tab3:
+        vlucht3(df)
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
