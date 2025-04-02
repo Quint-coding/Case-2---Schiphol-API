@@ -231,12 +231,12 @@ def visualize_flights_from_schiphol(df, selected_time):
         "html": """
             <b>Flight Information</b><br>
             <b>Time:</b> {scheduleTime}<br>
-            <b>Airline:</b> {flightName}}<br>
+            <b>Airline:</b> {prefixICAO}<br>
             <b>Direction:</b> {flightDirection}<br>
-            <b>Location:</b> {longitude_deg}, {latitude_deg}
+            <b>To / From:</b> {country_name}
         """,
         "style": {
-            "backgroundColor": "steelblue",
+            "backgroundColor": "grey",
             "color": "white",
             "fontFamily": "Arial"
         }
