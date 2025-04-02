@@ -236,7 +236,7 @@ elif options == 'Geografische map':
 
         while True:
             current_minute = datetime.now(timezone(timedelta(hours=2))).strftime("%H:%M") # Get current Amsterdam time in HH:MM
-            updated_df = get_flight_data()
+            updated_df = get_latest_flight_data()
             st.session_state['realtime_flight_data'] = updated_df
 
             # --- DEBUGGING ---
