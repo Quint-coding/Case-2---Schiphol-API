@@ -318,7 +318,7 @@ elif options == 'Geografische map':
     st.divider()
 
     df['scheduleTime'] = df['scheduleTime'].astype(str)
-    df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'])
+    
     available_times = df['scheduleTime'].unique()
 
     display_option = st.segmented_control("Select Flight Display Mode:", ["All Flights", "By Time"])
@@ -338,9 +338,9 @@ elif options == 'Geografische map':
                 st.write(f"**Selected Time:** {selected_date} at {selected_time}")
                 visualize_flights_from_schiphol(df, selected_time)
             else:
-                start_date = df['scheduleDateTime'].min().strftime('%A, %B %d, %Y')
-                end_date = df['scheduleDateTime'].max().strftime('%A, %B %d, %Y')
-                st.write(f"**Showing all flights from {start_date} to {end_date}.**")
+                start_time = df['scheduleTime'].min()
+                end_time = df['scheduleTime'].max()
+                st.write(f"**Showing all flights from {start_time} to {end_time}.**")
                 visualize_flights_from_schiphol(df)
 
         with col2:
