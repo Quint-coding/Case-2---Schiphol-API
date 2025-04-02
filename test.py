@@ -74,10 +74,6 @@ if 'realtime_flight_data' not in st.session_state:
 
 # Get cached data (initial load)
 df = st.session_state['realtime_flight_data']
-if df.empty:
-    df = dummy_df # Use dummy data if API fetch failed or on initial load without cached data
-
-st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
