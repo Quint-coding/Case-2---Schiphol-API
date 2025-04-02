@@ -21,22 +21,26 @@ headers = {
 @st.cache_data(ttl=60)  # Cache function for 1 minute
 def get_latest_flight_data():
     all_flights = []  # List to store all flight data from the latest page
+    total_pages = 1  # Initialize total_pages
 
-    # First, determine the total number of pages (assuming this info is available)
-    # You might need to adjust this part based on how the API exposes total pages
+    # First, attempt to get the total number of pages from the API
     try:
         response_for_total = requests.get(f"{url_base}?includedelays=false&page=0&sort=%2BscheduleTime", headers=headers)
         response_for_total.raise_for_status()  # Raise an exception for bad status codes
         total_data = response_for_total.json()
         # Assuming the total number of pages is available in a key like 'totalPages'
-        total_pages = total_data.get('totalPages', 1) # Default to 1 if not found
-        latest_page = max(0, total_pages - 1) # Get the index of the last page
+        # **Inspect your API response to find the correct key!**
+        total_pages = total_data.get('totalPages', 1)
+        print(f"Total pages found: {total_pages}") # For debugging
     except requests.exceptions.RequestException as e:
         print(f"Error fetching total page count: {e}")
-        return pd.DataFrame()  # Return an empty DataFrame in case of an error
-    except KeyError:
-        print("Could not determine total number of pages from the API response.")
         return pd.DataFrame()
+    except KeyError:
+        print("Could not find 'totalPages' key in the API response. Assuming only one page.")
+        total_pages = 1 # Assume only one page if we can't find the total
+
+    latest_page = max(0, total_pages - 1) # Get the index of the last page
+    print(f"Fetching data from page: {latest_page}") # For debugging
 
     url = f"{url_base}?includedelays=false&page={latest_page}&sort=%2BscheduleTime"
     try:
@@ -60,7 +64,7 @@ def get_latest_flight_data():
 
     df = pd.DataFrame(all_flights)  # Convert to DataFrame
 
-    # Data processing
+    # Data processing (remains the same)
     df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0])
     df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]))
     df['visa'] = df['route'].apply(lambda x: x.get('visa', [None]))
@@ -71,7 +75,7 @@ def get_latest_flight_data():
     df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]))
     df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]))
 
-    # Merge with airport data
+    # Merge with airport data (remains the same)
     Airports = pd.read_csv('world-airports.csv')
     Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
     df = df.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
