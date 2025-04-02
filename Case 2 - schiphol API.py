@@ -203,10 +203,10 @@ SCHIPHOL_LON = 4.763889
 SCHIPHOL_LAT = 52.308611
 
 def visualize_flights_from_schiphol(df):
-    # Option to show all flights or filter by time
-    show_all = st.checkbox("Show all flights", value=True)
+    # Use segmented control for selection
+    option = st.radio("Select flight display mode:", ["All Flights", "Flights by Time"], horizontal=True)
     
-    if show_all:
+    if option == "All Flights":
         selected_flights = df.copy()
     else:
         selected_time = st.select_slider("Select Time", options=sorted(df["scheduleTime"].unique()))
@@ -291,6 +291,7 @@ def visualize_flights_from_schiphol(df):
     st.pydeck_chart(r)
 
 
+
 if options == 'Statistiek':
 
     st.title('Statistiek')
@@ -315,10 +316,6 @@ if options == 'Statistiek':
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
-    df['scheduleTime'] = df['scheduleTime'].astype(str)
-    available_times = df['scheduleTime'].unique()
-
-    selected_time = st.select_slider("Select a Time:", available_times)
 
     # Convert 'scheduleDateTime' to datetime objects if it's not already
     df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'])
