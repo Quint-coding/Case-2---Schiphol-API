@@ -243,7 +243,12 @@ def visualize_flights_from_schiphol(df, selected_time):
     }
 
     # Create PyDeck chart
-    layers = [layer for layer in [departing_arc_layer, arriving_arc_layer] if layer.data.shape[0] > 0]
+    layers = []
+    if not departing.empty:
+        layers.append(departing_arc_layer)
+    if not arriving.empty:
+        layers.append(arriving_arc_layer)
+
     r = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
@@ -253,6 +258,7 @@ def visualize_flights_from_schiphol(df, selected_time):
 
     # Display in Streamlit
     st.pydeck_chart(r)
+
 
 if options == 'Statistiek':
 
