@@ -186,10 +186,10 @@ def visualize_flights_from_schiphol(df, selected_time):
 
     Args:
         df (pd.DataFrame): DataFrame containing flight data with
-                           'longitude_deg', 'latitude_deg', 'scheduleDateTime',
+                           'longitude_deg_Port', 'latitude_deg_Port', 'scheduleTime',
                            and 'flightDirection' ('A' or 'D'), and optionally
                            'destination' (for departures) or 'origin' (for arrivals).
-        selected_time (str): The specific scheduleDateTime to visualize.
+        selected_time (str): The specific scheduleTime to visualize.
     """
     selected_flights = df[df["scheduleTime"] == selected_time].copy()
     if selected_flights.empty:
@@ -203,7 +203,7 @@ def visualize_flights_from_schiphol(df, selected_time):
     # Prepare data for Departing ArcLayer (Blue to Transparent)
     departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
     departing['to'] = departing.apply(
-        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+        lambda row: [row['longitude_deg_Port'], row['latitude_deg_Port']], axis=1
     )
     departing_arc_layer = pdk.Layer(
         "ArcLayer",
@@ -215,12 +215,19 @@ def visualize_flights_from_schiphol(df, selected_time):
         auto_highlight=True,
         get_width=5,
         pickable=True,
+        tooltip={
+            "html": "<b>Departure from Schiphol</b><br/>"
+                    "<b>Time:</b> {scheduleTime}<br/>"
+                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
+                    "<b>Destination:</b> {destination}",
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
     )
 
 
     # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
     arriving['from'] = arriving.apply(
-        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+        lambda row: [row['longitude_deg_Origin'], row['latitude_deg_Origin']], axis=1
     )
     arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
     arriving_arc_layer = pdk.Layer(
@@ -228,20 +235,19 @@ def visualize_flights_from_schiphol(df, selected_time):
         data=arriving,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 0, 255, 200],  # Green for arriving source (Origin)
-        get_target_color=[0, 255, 0, 200],  # Green target for arriving (Schiphol)
+        get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
+        get_target_color=[0, 0, 255, 200],  # Blue target for arriving (Schiphol)
         auto_highlight=True,
         get_width=5,
         pickable=True,
+        tooltip={
+            "html": "<b>Arrival at Schiphol</b><br/>"
+                    "<b>Time:</b> {scheduleTime}<br/>"
+                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
+                    "<b>Origin:</b> {origin}",
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
     )
-
-    tooltip = {
-        "html": "<b>Arrival at Schiphol</b><br/>"
-                "<b>Time:</b> {scheduleTime}<br/>"
-                "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
-                "<b>Origin:</b> {origin}",
-        "style": "background-color:steelblue; color:white; font-family: Arial;",
-    }
 
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
@@ -260,7 +266,6 @@ def visualize_flights_from_schiphol(df, selected_time):
     r = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
-        tooltip=tooltip,
         map_style="mapbox://styles/mapbox/dark-v10"
     )
 
