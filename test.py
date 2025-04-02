@@ -224,25 +224,35 @@ elif options == 'Geografische map':
             current_minute = datetime.now(timezone(timedelta(hours=2))).strftime("%H:%M") # Get current Amsterdam time in HH:MM
             updated_df = get_flight_data()
             st.session_state['realtime_flight_data'] = updated_df
-            df_map_updated = updated_df.dropna(subset=["latitude_deg", "longitude_deg"]).copy()
 
-            with map_placeholder.container():
-                st.subheader(f"Flights Scheduled Around {current_minute}")
-                flight_deck = visualize_flights_from_schiphol(df_map_updated, current_minute)
-                if flight_deck:
-                    st.pydeck_chart(flight_deck)
-                else:
-                    st.info(f"No flight data available for {current_minute}.")
+            # --- DEBUGGING ---
+            st.subheader("Debugging Updated DataFrame (Inspect in Streamlit)")
+            st.dataframe(updated_df)
+            # --- END DEBUGGING ---
 
-            with legend_placeholder.container():
-                st.markdown(
-                    """
-                    ### Legend:
-                    - <span style="color:blue">Blue</span>:     Departing Flights
-                    - <span style="color:green">Green</span>:   Arriving Flights
-                    """,
-                    unsafe_allow_html=True
-                )
+            if 'latitude_deg' in updated_df.columns and 'longitude_deg' in updated_df.columns:
+                df_map_updated = updated_df.dropna(subset=["latitude_deg", "longitude_deg"]).copy()
+
+                with map_placeholder.container():
+                    st.subheader(f"Flights Scheduled Around {current_minute}")
+                    flight_deck = visualize_flights_from_schiphol(df_map_updated, current_minute)
+                    if flight_deck:
+                        st.pydeck_chart(flight_deck)
+                    else:
+                        st.info(f"No flight data available for {current_minute}.")
+
+                with legend_placeholder.container():
+                    st.markdown(
+                        """
+                        ### Legend:
+                        - <span style="color:blue">Blue</span>:     Departing Flights
+                        - <span style="color:green">Green</span>:   Arriving Flights
+                        """,
+                        unsafe_allow_html=True
+                    )
+            else:
+                st.error("Error: 'latitude_deg' or 'longitude_deg' columns are missing in the updated data.")
+
             time.sleep(60)
     else:
         st.info("No initial flight data available to display the map.")
