@@ -173,13 +173,6 @@ def visualize_flights_from_schiphol(df, selected_time):
         auto_highlight=True,
         width_scale=0.02,
         width_min_pixels=3,
-        tooltip={
-            "html": "<b>Arrival at Schiphol</b><br/>"
-                    "<b>Time:</b> {scheduleTime}<br/>"
-                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
-                    "<b>Origin:</b> {origin}",
-            "style": "background-color:steelblue; color:white; font-family: Arial;",
-        },
     )
 
 
@@ -198,15 +191,15 @@ def visualize_flights_from_schiphol(df, selected_time):
         auto_highlight=True,
         width_scale=0.02,
         width_min_pixels=3,
-        tooltip={
-            "html": "<b>Arrival at Schiphol</b><br/>"
-                    "<b>Time:</b> {scheduleTime}<br/>"
-                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
-                    "<b>Origin:</b> {origin}",
-            "style": "background-color:steelblue; color:white; font-family: Arial;",
-        },
     )
 
+    tooltip={
+        "html": "<b>Arrival at Schiphol</b><br/>"
+                "<b>Time:</b> {scheduleTime}<br/>"
+                "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
+                "<b>Origin:</b> {origin}",
+        "style": "background-color:steelblue; color:white; font-family: Arial;",
+    }
 
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
@@ -225,7 +218,8 @@ def visualize_flights_from_schiphol(df, selected_time):
     r = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/dark-v10",
+        tooltip=tooltip,
+        map_style="mapbox://styles/mapbox/dark-v10"
     )
 
     # Display the PyDeck chart in Streamlit
