@@ -2,18 +2,18 @@ import requests
 import time
 import streamlit as st
 import plotly.express as px
-import statsmodels.api as sm
+import plotly.graph_objects as go
+import pydeck as pdk
 import pandas as pd
 import numpy as np
-import geopandas as gpd
-import matplotlib.pyplot as plt
-import ipywidgets as widgets
-from shapely.geometry import Point
-import matplotlib.patheffects as path_effects
 
-import plotly.graph_objects as go
+# import geopandas as gpd
+# import matplotlib.pyplot as plt
+# import ipywidgets as widgets
+# from shapely.geometry import Point
+# import matplotlib.patheffects as path_effects
+# import statsmodels.api as sm
 
-import pydeck as pdk
 
 st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
@@ -30,7 +30,7 @@ headers = {
 @st.cache_data(ttl=86400)  # Cache function for 1 uur minutes
 def get_flight_data():
     all_flights = []  # List to store all pages of flight data
-    max_pages = 200  # Limit to 200 pages
+    max_pages = 20  # Limit to 200 pages
 
     for page in range(max_pages):
         url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
@@ -82,33 +82,58 @@ def vlucht2(dataframe):
     st.header('Vluchten per tijdstip')
     st.plotly_chart(px.histogram(dataframe, x="scheduleTime", width=600))
 
-def vlucht3(dataframe):
-    x_axis_value = st.selectbox('Selecteer de X-as', options=dataframe.columns)
-    y_axis_value = st.selectbox('Selecteer de Y-as', options=dataframe.columns)
-    show_trendline = st.checkbox("Toon trendlijn")
-
-    # Controleer of een trendlijn mogelijk is
-    if show_trendline:
-        try:
-            # Probeer de trendlijn te berekenen
-            plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value, trendline="ols")
-            col = st.color_picker("Kies een kleur")
-            plot.update_traces(marker=dict(color=col))
-            st.plotly_chart(plot)
-        except Exception as e:  # Vang eventuele fouten op tijdens de berekening van de trendlijn
-            st.write("Trendlijn niet mogelijk")  # Toon de melding
-            st.write(f"Oorzaak: {e}") # toon de oorzaak van de error (handig bij debuggen)
-            # Toon alsnog de scatterplot zonder trendlijn (optioneel)
-            plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value)
-            col = st.color_picker("Kies een kleur")
-            plot.update_traces(marker=dict(color=col))
-            st.plotly_chart(plot)
-    else:
-        # Toon de scatterplot zonder trendlijn
-        plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value)
-        col = st.color_picker("Kies een kleur")
-        plot.update_traces(marker=dict(color=col))
-        st.plotly_chart(plot)
+def vlucht3(df_filtered):
+    # **Relevante kolommen filteren**
+    possible_columns = [
+        'scheduleDateTime', 'actualLandingTime', 'estimatedLandingTime',
+        'prefixICAO',
+        'flightNumber', 'flightDirection', 'serviceType', 'terminal',
+        'baggage_belt', 'pier', 'gate', 'destination',
+    ]
+ 
+    # **Check welke kolommen echt bestaan in df_filtered**
+    relevant_columns = [col for col in possible_columns if col in df_filtered.columns]
+   
+    if not relevant_columns:
+        st.error("Geen relevante kolommen gevonden in de dataset!")
+        return
+   
+    df_plot = df_filtered[relevant_columns].copy()
+ 
+ 
+    # **Converteer datetime kolommen**
+    datetime_cols = ['scheduleDateTime', 'actualLandingTime', 'estimatedLandingTime']
+    for col in datetime_cols:
+        if col in df_plot.columns:
+            df_plot[col] = pd.to_datetime(df_plot[col], errors='coerce')
+ 
+    # **Vertraging berekenen**
+    if 'scheduleDateTime' in df_plot.columns and 'actualLandingTime' in df_plot.columns:
+        df_plot['vertraging (min)'] = (df_plot['actualLandingTime'] - df_plot['scheduleDateTime']).dt.total_seconds() / 60
+ 
+ 
+    # **Selecteer X- en Y-as**
+    x_axis_value = st.selectbox('Selecteer de X-as', options=df_plot.columns)
+    y_axis_value = st.selectbox('Selecteer de Y-as', options=df_plot.columns)
+ 
+    # **Controle of kolommen numeriek zijn**
+    x_is_numeric = pd.api.types.is_numeric_dtype(df_plot[x_axis_value])
+    y_is_numeric = pd.api.types.is_numeric_dtype(df_plot[y_axis_value])
+ 
+    # **Trendlijn optie**
+    show_trendlijn = False
+    if x_is_numeric and y_is_numeric:
+        show_trendlijn = st.checkbox("Toon trendlijn")
+ 
+ 
+    # **Maak de scatterplot**
+    plot = px.scatter(df_plot, x=x_axis_value, y=y_axis_value, title="Interactieve Vlucht Plot")
+ 
+    # **Kleur aanpassen**
+    col = st.color_picker("Kies een kleur")
+    plot.update_traces(marker=dict(color=col))
+ 
+    st.plotly_chart(plot)
 
 def vlucht4(dataframe):
     st.header("Aankomst afwijking per luchtvaartmaatschappij")
