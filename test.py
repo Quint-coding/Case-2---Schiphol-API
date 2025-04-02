@@ -17,7 +17,12 @@ headers = {
     'app_id': 'b1ff0af7',
     'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
 }
-@st.cache_data(ttl=3600)  # Cache function for 10 minutes
+
+# Assume url_base and headers are defined elsewhere (for actual API calls)
+url_base = "https://api.schiphol.nl/public-flights/flights"
+headers = {} # Replace with your actual headers
+
+@st.cache_data(ttl=60)  # Cache for 1 minute for more frequent updates
 def get_flight_data():
     try:
         all_flights = []  # List to store all pages of flight data
@@ -30,11 +35,8 @@ def get_flight_data():
             data = response.json()
             if "flights" in data:
                 all_flights.extend(data["flights"])  # Append flights
-            time.sleep(1)  # Prevent rate limits
-
+            time.sleep(0.5)  # Prevent rate limits, reduced sleep
         df = pd.DataFrame(all_flights)  # Convert to DataFrame
-
-        # Data processing
         if not df.empty:
             df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0] if isinstance(x, dict) else None)
             df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]) if isinstance(x, dict) else None)
@@ -45,8 +47,6 @@ def get_flight_data():
             )
             df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]) if isinstance(x, dict) else None)
             df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]) if isinstance(x, dict) else None)
-
-            # Merge with airport data
             try:
                 Airports = pd.read_csv('world-airports.csv')
                 Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
@@ -54,6 +54,8 @@ def get_flight_data():
             except FileNotFoundError:
                 st.error("Error: world-airports.csv not found. Please make sure it's in the same directory.")
                 return pd.DataFrame() # Return empty DataFrame in case of error
+            if 'scheduleDateTime' in df.columns:
+                df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'], errors='coerce')
         return df
     except requests.exceptions.RequestException as e:
         st.error(f"Error fetching flight data: {e}")
@@ -61,12 +63,6 @@ def get_flight_data():
     except Exception as e:
         st.error(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
-
-def update_data():
-    while True:
-        new_data = get_flight_data()
-        st.session_state['realtime_flight_data'] = new_data
-        time.sleep(60)
 
 # Initialize session state for realtime data
 if 'realtime_flight_data' not in st.session_state:
@@ -93,25 +89,20 @@ def vlucht3(dataframe):
     x_axis_value = st.selectbox('Selecteer de X-as', options=dataframe.columns)
     y_axis_value = st.selectbox('Selecteer de Y-as', options=dataframe.columns)
     show_trendline = st.checkbox("Toon trendlijn")
-
-    # Controleer of een trendlijn mogelijk is
     if show_trendline:
         try:
-            # Probeer de trendlijn te berekenen
             plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value, trendline="ols")
             col = st.color_picker("Kies een kleur")
             plot.update_traces(marker=dict(color=col))
             st.plotly_chart(plot)
-        except Exception as e:  # Vang eventuele fouten op tijdens de berekening van de trendlijn
-            st.write("Trendlijn niet mogelijk")  # Toon de melding
-            st.write(f"Oorzaak: {e}") # toon de oorzaak van de error (handig bij debuggen)
-            # Toon alsnog de scatterplot zonder trendlijn (optioneel)
+        except Exception as e:
+            st.write("Trendlijn niet mogelijk")
+            st.write(f"Oorzaak: {e}")
             plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value)
             col = st.color_picker("Kies een kleur")
             plot.update_traces(marker=dict(color=col))
             st.plotly_chart(plot)
     else:
-        # Toon de scatterplot zonder trendlijn
         plot = px.scatter(dataframe, x=x_axis_value, y=y_axis_value)
         col = st.color_picker("Kies een kleur")
         plot.update_traces(marker=dict(color=col))
@@ -119,12 +110,9 @@ def vlucht3(dataframe):
 
 def vlucht4(dataframe):
     st.header("Geplande vs. Werkelijke landingstijden per vluchtmaatschappij")
-
     luchtvaartmaatschappijen = dataframe['prefixICAO'].unique()
     opties = st.selectbox("Selecteer een luchtvaartmaatschappij:", luchtvaartmaatschappijen)
-
     df_filtered = dataframe[dataframe['prefixICAO'] == opties]
-
     st.plotly_chart(px.scatter(
         df_filtered,
         x='scheduleDateTime',
@@ -134,182 +122,130 @@ def vlucht4(dataframe):
         hover_name='flightNumber', # Of een andere unieke ID
         hover_data=['scheduleDateTime', 'actualLandingTime']))
 
+# Schiphol Airport Coordinates
+SCHIPHOL_LON = 4.763889
+SCHIPHOL_LAT = 52.308611
 
-# Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
-if not df.empty:
-    df["flight_number"] = df["scheduleDateTime"].rank(method="first").astype(int)
+def visualize_flights_from_schiphol(df_vis, current_time_str):
+    selected_flights = df_vis[df_vis["scheduleTime"] == current_time_str].copy()
+    if selected_flights.empty:
+        st.warning(f"No flights found for the selected time: {current_time_str}")
+        return
 
-    # Filter nan waarde bij cordinaten
-    df_map = df.dropna(subset=["latitude_deg", "longitude_deg"]).copy()
+    departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
+    arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
 
+    departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
+    departing['to'] = departing.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    departing_arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=departing,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
+        get_target_color=[0, 255, 0, 50],      # Transparent target for departing (Destination)
+        auto_highlight=True,
+        width_scale=0.02,
+        width_min_pixels=3,
+        tooltip={
+            "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
+    )
 
-    # Schiphol Airport Coordinates
-    SCHIPHOL_LON = 4.763889
-    SCHIPHOL_LAT = 52.308611
+    arriving['from'] = arriving.apply(
+        lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
+    )
+    arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
+    arriving_arc_layer = pdk.Layer(
+        "ArcLayer",
+        data=arriving,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
+        get_target_color=[0, 0, 255, 50],  # Blue target for arriving (Schiphol)
+        auto_highlight=True,
+        width_scale=0.02,
+        width_min_pixels=3,
+        tooltip={
+            "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
+                    f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
+                    "<b>Time:</b> {scheduleDateTime}" +
+                    ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
+            "style": "background-color:steelblue; color:white; font-family: Arial;",
+        },
+    )
 
-    def visualize_flights_from_schiphol(df_vis, selected_time):
-        """
-        Visualizes flight paths to and from Schiphol using separate ArcLayers
-        for departures (Blue fading out) and arrivals (Origin Green fading to Schiphol Green)
-        using pydeck in Streamlit.
+    view_state = pdk.ViewState(
+        latitude=SCHIPHOL_LAT,
+        longitude=SCHIPHOL_LON,
+        zoom=4,
+        pitch=50,
+    )
 
-        Args:
-            df_vis (pd.DataFrame): DataFrame containing flight data with
-                               'longitude_deg', 'latitude_deg', 'scheduleDateTime',
-                               and 'flightDirection' ('A' or 'D'), and optionally
-                               'destination' (for departures) or 'origin' (for arrivals).
-            selected_time (str): The specific scheduleDateTime to visualize.
-        """
-        selected_flights = df_vis[df_vis["scheduleTime"] == selected_time].copy()
-        if selected_flights.empty:
-            st.warning(f"No flights found for the selected time: {selected_time}")
-            return
+    layers = []
+    if not departing.empty:
+        layers.append(departing_arc_layer)
+    if not arriving.empty:
+        layers.append(arriving_arc_layer)
 
-        # Separate departing and arriving flights
-        departing = selected_flights[selected_flights['flightDirection'] == 'D'].copy()
-        arriving = selected_flights[selected_flights['flightDirection'] == 'A'].copy()
-
-        # Prepare data for Departing ArcLayer (Blue to Transparent)
-        departing['from'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(departing)
-        departing['to'] = departing.apply(
-            lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-        )
-        departing_arc_layer = pdk.Layer(
-            "ArcLayer",
-            data=departing,
-            get_source_position="from",
-            get_target_position="to",
-            get_source_color=[0, 0, 255, 200],  # Blue for departing source (Schiphol)
-            get_target_color=[0, 255, 0, 50],      # Transparent target for departing (Destination)
-            auto_highlight=True,
-            width_scale=0.02,
-            width_min_pixels=3,
-            tooltip={
-                "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                        "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                        "<b>Time:</b> {scheduleDateTime}" +
-                        ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
-                "style": "background-color:steelblue; color:white; font-family: Arial;",
-            },
-        )
-
-        # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
-        arriving['from'] = arriving.apply(
-            lambda row: [row['longitude_deg'], row['latitude_deg']], axis=1
-        )
-        arriving['to'] = [[SCHIPHOL_LON, SCHIPHOL_LAT]] * len(arriving)
-        arriving_arc_layer = pdk.Layer(
-            "ArcLayer",
-            data=arriving,
-            get_source_position="from",
-            get_target_position="to",
-            get_source_color=[0, 255, 0, 200],  # Green for arriving source (Origin)
-            get_target_color=[0, 0, 255, 50],  # Blue target for arriving (Schiphol)
-            auto_highlight=True,
-            width_scale=0.02,
-            width_min_pixels=3,
-            tooltip={
-                "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
-                        f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                        "<b>Time:</b> {scheduleDateTime}" +
-                        ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
-                "style": "background-color:steelblue; color:white; font-family: Arial;",
-            },
-        )
-
-        view_state = pdk.ViewState(
-            latitude=SCHIPHOL_LAT,
-            longitude=SCHIPHOL_LON,
-            zoom=4,
-            pitch=50,
-        )
-
-        # Create the PyDeck chart with both ArcLayers
-        layers = []
-        if not departing.empty:
-            layers.append(departing_arc_layer)
-        if not arriving.empty:
-            layers.append(arriving_arc_layer)
-
-        r = pdk.Deck(
-            layers=layers,
-            initial_view_state=view_state,
-            map_style="mapbox://styles/mapbox/dark-v10",
-        )
-
-        # Display the PyDeck chart in Streamlit
-        st.pydeck_chart(r)
+    r = pdk.Deck(
+        layers=layers,
+        initial_view_state=view_state,
+        map_style="mapbox://styles/mapbox/dark-v10",
+    )
+    return r
 
 if options == 'Statistiek':
-
     st.title('Statistiek')
     tab1, tab2, tab3, tab4 = st.tabs(['Aantal vluchten', 'Vluchten per tijdstip', 'Interactieve plot', "Geplande vs. Werkelijke landingstijden"])
     with tab1:
         vlucht1(df)
-
     with tab2:
-
         vlucht2(df)
     with tab3:
-
         vlucht3(df)
     with tab4:
-
         vlucht4(df)
 
 elif options == 'Geografische map':
-    st.title("Flight Visualization with PyDeck")
+    st.title("Real-time Flight Visualization")
     if not df.empty:
-        df_map['scheduleTime'] = df_map['scheduleTime'].astype(str)
-        available_times = df_map['scheduleTime'].unique()
+        df_map = df.dropna(subset=["latitude_deg", "longitude_deg"]).copy()
+        map_placeholder = st.empty()
+        legend_placeholder = st.empty()
 
-        map_tab1, map_tab2 = st.tabs(["Real-time Map", "Recent Flights"])
+        while True:
+            current_minute = datetime.now(timezone(timedelta(hours=2))).strftime("%H:%M") # Get current Amsterdam time in HH:MM
+            updated_df = get_flight_data()
+            st.session_state['realtime_flight_data'] = updated_df
+            df_map_updated = updated_df.dropna(subset=["latitude_deg", "longitude_deg"]).copy()
 
-        with map_tab1:
-            selected_time = st.select_slider("Select a Time:", available_times)
-
-            container = st.container()
-
-            with container:
-                col1, col2 = st.columns([1, 0.3])  # Adjust the ratio of widths as needed
-
-                with col1:
-                    visualize_flights_from_schiphol(df_map, selected_time)
-
-                with col2:
-                    st.markdown(
-                        """
-                        ### Legend:
-                        - <span style="color:blue">Blue</span>:     Departing Flights
-                        - <span style="color:green">Green</span>:   Arriving Flights
-                        """,
-                        unsafe_allow_html=True
-                    )
-        with map_tab2:
-            st.subheader("Flights Added in the Last Minute")
-            now_utc = datetime.now(timezone.utc)  # Get current time in UTC
-            amsterdam_tz = timezone(timedelta(hours=2))  # Define Amsterdam's timezone (UTC+02:00)
-            now_amsterdam = now_utc.astimezone(amsterdam_tz)
-            one_minute_ago_amsterdam = now_amsterdam - timedelta(minutes=1)
-
-            # Ensure 'scheduleDateTime' is in datetime format
-            if not st.session_state['realtime_flight_data'].empty:
-                st.session_state['realtime_flight_data']['scheduleDateTime'] = pd.to_datetime(
-                    st.session_state['realtime_flight_data']['scheduleDateTime'], errors='coerce'
-                )
-                recent_flights = st.session_state['realtime_flight_data'][
-                    st.session_state['realtime_flight_data']['scheduleDateTime'] >= one_minute_ago_amsterdam
-                ]
-                if not recent_flights.empty:
-                    st.dataframe(recent_flights)
+            with map_placeholder.container():
+                st.subheader(f"Flights Scheduled Around {current_minute}")
+                flight_deck = visualize_flights_from_schiphol(df_map_updated, current_minute)
+                if flight_deck:
+                    st.pydeck_chart(flight_deck)
                 else:
-                    st.info("No new flights added in the last minute.")
-            else:
-                st.info("No flight data available to display recent flights.")
+                    st.info(f"No flight data available for {current_minute}.")
 
+            with legend_placeholder.container():
+                st.markdown(
+                    """
+                    ### Legend:
+                    - <span style="color:blue">Blue</span>:     Departing Flights
+                    - <span style="color:green">Green</span>:   Arriving Flights
+                    """,
+                    unsafe_allow_html=True
+                )
+            time.sleep(60)
     else:
-        st.info("No flight data available to display on the map.")
-
+        st.info("No initial flight data available to display the map.")
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
