@@ -20,47 +20,15 @@ headers = {
 
 @st.cache_data(ttl=60)  # Cache function for 1 minute
 def get_latest_flight_data():
-    all_flights = []  # List to store all flight data from the latest page
-    total_pages = 1  # Initialize total_pages
+    all_flights = []  # List to store all pages of flight data
+    max_pages = 100  # Limit to 5 pages
 
-    # First, attempt to get the total number of pages from the API
-    try:
-        response_for_total = requests.get(f"{url_base}?includedelays=false&page=0&sort=%2BscheduleTime", headers=headers)
-        response_for_total.raise_for_status()  # Raise an exception for bad status codes
-        total_data = response_for_total.json()
-        # Assuming the total number of pages is available in a key like 'totalPages'
-        # **Inspect your API response to find the correct key!**
-        total_pages = total_data.get('totalPages', 1)
-        print(f"Total pages found: {total_pages}") # For debugging
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching total page count: {e}")
-        return pd.DataFrame()
-    except KeyError:
-        print("Could not find 'totalPages' key in the API response. Assuming only one page.")
-        total_pages = 1 # Assume only one page if we can't find the total
-
-    latest_page = max(0, total_pages - 1) # Get the index of the last page
-    print(f"Fetching data from page: {latest_page}") # For debugging
-
-    url = f"{url_base}?includedelays=false&page={latest_page}&sort=%2BscheduleTime"
-    try:
+    for page in range(max_pages):
+        url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
         response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
         data = response.json()
-        if "flights" in data:
-            all_flights.extend(data["flights"])  # Append flights from the latest page
-        else:
-            print(f"No 'flights' data found on page {latest_page}.")
-            return pd.DataFrame()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching data from page {latest_page}: {e}")
-        return pd.DataFrame()
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return pd.DataFrame()
-
-    if not all_flights:
-        return pd.DataFrame()  # Return an empty DataFrame if no flights were fetched
+        all_flights.extend(data["flights"])  # Append flights
+        time.sleep(1)  # Prevent rate limits
 
     df = pd.DataFrame(all_flights)  # Convert to DataFrame
 
