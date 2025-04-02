@@ -18,55 +18,69 @@ headers = {
     'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
 }
 
-# Assume url_base and headers are defined elsewhere (for actual API calls)
-url_base = "https://api.schiphol.nl/public-flights/flights"
-headers = {} # Replace with your actual headers
+@st.cache_data(ttl=60)  # Cache function for 1 minute
+def get_latest_flight_data():
+    all_flights = []  # List to store all flight data from the latest page
 
-@st.cache_data(ttl=60)  # Cache for 1 minute for more frequent updates
-def get_flight_data():
+    # First, determine the total number of pages (assuming this info is available)
+    # You might need to adjust this part based on how the API exposes total pages
     try:
-        all_flights = []  # List to store all pages of flight data
-        max_pages = 2  # Limit to a smaller number for demonstration
-
-        for page in range(max_pages):
-            url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()  # Raise an exception for HTTP errors
-            data = response.json()
-            if "flights" in data:
-                all_flights.extend(data["flights"])  # Append flights
-            time.sleep(0.5)  # Prevent rate limits, reduced sleep
-        df = pd.DataFrame(all_flights)  # Convert to DataFrame
-        if not df.empty:
-            df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0] if isinstance(x, dict) else None)
-            df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]) if isinstance(x, dict) else None)
-            df['visa'] = df['route'].apply(lambda x: x.get('visa', [None]) if isinstance(x, dict) else None)
-            df['vlucht_status'] = df['publicFlightState'].apply(lambda x: ','.join(x['flightStates']) if isinstance(x, dict) and 'flightStates' in x else None)
-            df["baggage_belt"] = df["baggageClaim"].apply(
-                lambda x: int(x["belts"][0]) if isinstance(x, dict) and "belts" in x and isinstance(x["belts"], list) and x["belts"] else None
-            )
-            df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]) if isinstance(x, dict) else None)
-            df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]) if isinstance(x, dict) else None)
-            try:
-                Airports = pd.read_csv('world-airports.csv')
-                Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
-                df = df.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
-            except FileNotFoundError:
-                st.error("Error: world-airports.csv not found. Please make sure it's in the same directory.")
-                return pd.DataFrame() # Return empty DataFrame in case of error
-            if 'scheduleDateTime' in df.columns:
-                df['scheduleDateTime'] = pd.to_datetime(df['scheduleDateTime'], errors='coerce')
-        return df
+        response_for_total = requests.get(f"{url_base}?includedelays=false&page=0&sort=%2BscheduleTime", headers=headers)
+        response_for_total.raise_for_status()  # Raise an exception for bad status codes
+        total_data = response_for_total.json()
+        # Assuming the total number of pages is available in a key like 'totalPages'
+        total_pages = total_data.get('totalPages', 1) # Default to 1 if not found
+        latest_page = max(0, total_pages - 1) # Get the index of the last page
     except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching flight data: {e}")
+        print(f"Error fetching total page count: {e}")
+        return pd.DataFrame()  # Return an empty DataFrame in case of an error
+    except KeyError:
+        print("Could not determine total number of pages from the API response.")
+        return pd.DataFrame()
+
+    url = f"{url_base}?includedelays=false&page={latest_page}&sort=%2BscheduleTime"
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        data = response.json()
+        if "flights" in data:
+            all_flights.extend(data["flights"])  # Append flights from the latest page
+        else:
+            print(f"No 'flights' data found on page {latest_page}.")
+            return pd.DataFrame()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data from page {latest_page}: {e}")
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        print(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
+
+    if not all_flights:
+        return pd.DataFrame()  # Return an empty DataFrame if no flights were fetched
+
+    df = pd.DataFrame(all_flights)  # Convert to DataFrame
+
+    # Data processing
+    df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0])
+    df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]))
+    df['visa'] = df['route'].apply(lambda x: x.get('visa', [None]))
+    df['vlucht_status'] = df['publicFlightState'].apply(lambda x: ','.join(x['flightStates']) if 'flightStates' in x else None)
+    df["baggage_belt"] = df["baggageClaim"].apply(
+        lambda x: int(x["belts"][0]) if isinstance(x, dict) and "belts" in x and isinstance(x["belts"], list) and x["belts"] else None
+    )
+    df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]))
+    df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]))
+
+    # Merge with airport data
+    Airports = pd.read_csv('world-airports.csv')
+    Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
+    df = df.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
+
+    return df
 
 # Initialize session state for realtime data
 if 'realtime_flight_data' not in st.session_state:
-    st.session_state['realtime_flight_data'] = get_flight_data()
+    st.session_state['realtime_flight_data'] = get_latest_flight_data()
 
 # Get cached data (initial load)
 df = st.session_state['realtime_flight_data']
