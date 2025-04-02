@@ -21,46 +21,91 @@ headers = {
     'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
 }
 
-@st.cache_data(ttl=3600)  # Cache function for 10 minutes
-def get_flight_data():
+@st.cache_data(ttl=60)  # Cache function for 1 minute
+def get_latest_flight_data():
     all_flights = []  # List to store all pages of flight data
-    max_pages = 20  # Limit to 5 pages
+    total_pages = 1
 
-    for page in range(max_pages):
+    # First, attempt to get the total number of pages from the API
+    try:
+        response_for_total = requests.get(f"{url_base}?includedelays=false&page=0&sort=%2BscheduleTime", headers=headers)
+        response_for_total.raise_for_status()
+        total_data = response_for_total.json()
+        total_pages = total_data.get('totalPages', 1)
+        print(f"Total pages found: {total_pages}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching total page count: {e}")
+        return pd.DataFrame()
+    except KeyError:
+        print("Could not find 'totalPages' key in the API response. Will attempt to go through pages sequentially.")
+        # In this case, we'll proceed without knowing the exact number of pages
+        pass
+
+    # Iterate through all the pages
+    for page in range(total_pages if 'totalPages' in locals() else 50): # Set a reasonable upper limit if totalPages is not found
         url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        all_flights.extend(data["flights"])  # Append flights
-        time.sleep(1)  # Prevent rate limits
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            if "flights" in data:
+                all_flights.extend(data["flights"])
+            else:
+                print(f"No 'flights' data found on page {page}. Stopping page iteration.")
+                break # Stop if no flights are found on a page
+            if 'totalPages' not in locals() and len(data.get('flights', [])) == 0:
+                print(f"No flights found on page {page}, assuming this is the end.")
+                break # Stop if we didn't get totalPages and find an empty page
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching data from page {page}: {e}")
+            break # Stop on error
+        except Exception as e:
+            print(f"An unexpected error occurred on page {page}: {e}")
+            break # Stop on error
+        time.sleep(0.1) # Be gentler with the API
 
-    df = pd.DataFrame(all_flights)  # Convert to DataFrame
+        # If we didn't get totalPages initially, check if the current page seems to be the last
+        if 'totalPages' not in locals() and len(data.get('flights', [])) < data.get('pageSize', 50): # Adjust 'pageSize' if your API uses a different default
+            print(f"Assuming page {page} is the last page based on the number of results.")
+            break
 
-    # Data processing
-    df['destination'] = df['route'].apply(lambda x: x.get('destinations', [None])[0])
-    df['eu'] = df['route'].apply(lambda x: x.get('eu', [None]))
-    df['visa'] = df['route'].apply(lambda x: x.get('visa', [None]))
-    df['vlucht_status'] = df['publicFlightState'].apply(lambda x: ','.join(x['flightStates']) if 'flightStates' in x else None)
-    df["baggage_belt"] = df["baggageClaim"].apply(
+    if not all_flights:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_flights)
+
+    # Sort the DataFrame by 'scheduleTime' to ensure the last entries are indeed the latest
+    df = df.sort_values(by='scheduleTime', ascending=False)
+
+    # Take the first 5 rows (which are now the last 5 based on scheduleTime)
+    df_latest_5 = df.head(5).copy() # Use .copy() to avoid SettingWithCopyWarning
+
+    # Data processing for the final 5 (same as before)
+    df_latest_5['destination'] = df_latest_5['route'].apply(lambda x: x.get('destinations', [None])[0])
+    df_latest_5['eu'] = df_latest_5['route'].apply(lambda x: x.get('eu', [None]))
+    df_latest_5['visa'] = df_latest_5['route'].apply(lambda x: x.get('visa', [None]))
+    df_latest_5['vlucht_status'] = df_latest_5['publicFlightState'].apply(lambda x: ','.join(x['flightStates']) if 'flightStates' in x else None)
+    df_latest_5["baggage_belt"] = df_latest_5["baggageClaim"].apply(
         lambda x: int(x["belts"][0]) if isinstance(x, dict) and "belts" in x and isinstance(x["belts"], list) and x["belts"] else None
     )
-    df['iataMain'] = df['aircraftType'].apply(lambda x: x.get('iataMain', [None]))
-    df['iataSub'] = df['aircraftType'].apply(lambda x: x.get('iataSub', [None]))
+    df_latest_5['iataMain'] = df_latest_5['aircraftType'].apply(lambda x: x.get('iataMain', [None]))
+    df_latest_5['iataSub'] = df_latest_5['aircraftType'].apply(lambda x: x.get('iataSub', [None]))
 
     # Merge with airport data
     Airports = pd.read_csv('world-airports.csv')
     Airports_clean = Airports.drop(columns=['home_link', 'wikipedia_link', 'scheduled_service', 'score', 'last_updated', 'elevation_ft', 'id', 'keywords'])
-    df = df.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
+    df = df_latest_5.merge(Airports_clean, how='left', left_on='destination', right_on='iata_code', suffixes=['_Port', '_Flight'])
 
     return df
 
 def update_data():
     while True:
-        new_data = get_flight_data()
+        new_data = get_latest_flight_data()
         st.session_state['realtime_flight_data'] = new_data
         time.sleep(60)
 
 # Get cached data
-df = get_flight_data()
+df = get_latest_flight_data()
 
 st.set_page_config(page_title='Schiphol API',  layout='wide', page_icon=':plane:')
 
