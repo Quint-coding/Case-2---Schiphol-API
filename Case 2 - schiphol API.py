@@ -174,13 +174,14 @@ def visualize_flights_from_schiphol(df, selected_time):
         width_scale=0.02,
         width_min_pixels=3,
         tooltip={
-            "html": f"<b>Departure:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                    "<b>Arrival:</b> [{to[0]:.2f}, {to[1]:.2f}]<br/>"
-                    "<b>Time:</b> {scheduleDateTime}" +
-                    ("<br/><b>Destination:</b> {destination}" if "destination" in departing.columns else ""),
+            "html": "<b>Arrival at Schiphol</b><br/>"
+                    "<b>Time:</b> {scheduleTime}<br/>"
+                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
+                    "<b>Origin:</b> {origin}",
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
     )
+
 
     # Prepare data for Arriving ArcLayer (Origin Green to Schiphol Green)
     arriving['from'] = arriving.apply(
@@ -198,13 +199,14 @@ def visualize_flights_from_schiphol(df, selected_time):
         width_scale=0.02,
         width_min_pixels=3,
         tooltip={
-            "html": "<b>Departure:</b> [{from[0]:.2f}, {from[1]:.2f}]<br/>"
-                    f"<b>Arrival:</b> [{SCHIPHOL_LON:.2f}, {SCHIPHOL_LAT:.2f}] (Schiphol)<br/>"
-                    "<b>Time:</b> {scheduleDateTime}" +
-                    ("<br/><b>Origin:</b> {origin}" if "origin" in arriving.columns else ""),
+            "html": "<b>Arrival at Schiphol</b><br/>"
+                    "<b>Time:</b> {scheduleTime}<br/>"
+                    "<b>Airline:</b> {prefixICAO} {flightNumber}<br/>"
+                    "<b>Origin:</b> {origin}",
             "style": "background-color:steelblue; color:white; font-family: Arial;",
         },
     )
+
 
     view_state = pdk.ViewState(
         latitude=SCHIPHOL_LAT,
