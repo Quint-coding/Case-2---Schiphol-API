@@ -27,10 +27,10 @@ headers = {
     'app_key': '43567fff2ced7e77e947c1b71ebc5f38'
 }
 
-@st.cache_data(ttl=3600)  # Cache function for 10 minutes
+@st.cache_data(ttl=86400)  # Cache function for 1 uur minutes
 def get_flight_data():
     all_flights = []  # List to store all pages of flight data
-    max_pages = 20  # Limit to 5 pages
+    max_pages = 200  # Limit to 200 pages
 
     for page in range(max_pages):
         url = f"{url_base}?includedelays=false&page={page}&sort=%2BscheduleTime"
@@ -111,7 +111,7 @@ def vlucht3(dataframe):
         st.plotly_chart(plot)
 
 def vlucht4(dataframe):
-    st.header("Vertraging per luchtvaartmaatschappij")
+    st.header("Aankomst afwijking per luchtvaartmaatschappij")
  
     luchtvaartmaatschappijen = ["Alle maatschappijen"] + list(dataframe['prefixICAO'].unique())
     opties = st.selectbox("Selecteer een luchtvaartmaatschappij:", luchtvaartmaatschappijen)
@@ -143,7 +143,7 @@ def vlucht4(dataframe):
         y='vertraging (min)',
         color='prefixICAO' if opties == "Alle maatschappijen" else 'vertraging (min)',  
         title=f'Vertraging in minuten per vlucht ({opties})',
-        labels={'scheduleDateTime': 'Geplande landingstijd', 'vertraging (min)': 'Vertraging (min)', 'prefixICAO': 'Maatschappij'},
+        labels={'scheduleDateTime': 'Geplande landingstijd', 'Afwijking (min)': 'Vertraging (min)', 'prefixICAO': 'Maatschappij'},
         hover_data=['flightNumber', 'scheduleDateTime', 'actualLandingTime'],
         opacity=0.7
     )
