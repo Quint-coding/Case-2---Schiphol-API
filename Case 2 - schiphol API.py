@@ -272,6 +272,16 @@ def vlucht_pier(dataframe):
     st.plotly_chart(px.bar(dataframe['pier'].value_counts().reset_index(),
                             x='pier', y='count', labels={'pier': 'Schipholpier', 'count': 'Aantal'},
                             color='flightDirection', width=600, height=400))
+    
+
+def filter_flights(dataframe):
+    flight_filter = st.radio("Selecteer vlucht type:", ["Alle", "Vertrekkend", "Aankomend"], index=0)
+    
+    if flight_filter == "Vertrekkend":
+        return dataframe[dataframe['flightDirection'] == 'D']
+    elif flight_filter == "Aankomend":
+        return dataframe[dataframe['flightDirection'] == 'A']
+    return dataframe
 
 
 # Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
@@ -387,31 +397,26 @@ if options == 'Home':
 if options == 'Statistiek':
     st.title('Statistiek')
     st.divider()
-    
-    # Flight direction filter
-    flight_direction = st.radio("Selecteer vluchtrichting", ['Alle vluchten', 'Vertrekkend', 'Aankomend'])
-    if flight_direction == 'Vertrekkend':
-        df_filtered = df[df['flightDirection'] == 'D']
-    elif flight_direction == 'Aankomend':
-        df_filtered = df[df['flightDirection'] == 'A']
-    else:
-        df_filtered = df.copy()
-    
-    tab1, tab2 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden"])
+
+    df_filtered = filter_flights(df)
+
+    tab1, tab2, tab3 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden", 'Interactieve plot'])
     with tab1:
         container = st.container()
         with container:
-            col1, col2 = st.columns(2)
+            col1, col2 = st.columns([1,1])
             with col1:
                 vlucht1(df_filtered)
             with col2:
                 vlucht2(df_filtered)
-            col3, col4 = st.columns(2)
+            
+            col3, col4 = st.columns([1,1])
             with col3:
                 vlucht_land(df_filtered)
             with col4:
                 vlucht_continent(df_filtered)
-            col5, col6 = st.columns(2)
+            
+            col5, col6 = st.columns([1,1])
             with col5:
                 vlucht_statussen(df_filtered)
             with col6:
