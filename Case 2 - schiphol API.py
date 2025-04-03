@@ -365,7 +365,7 @@ elif options == 'Statistiek':
                     """,
                     unsafe_allow_html=True
                 )
-            vlucht_iataMain(df)
+            vlucht_haventype(df)
 
     with tab2:
         vlucht4(df)
