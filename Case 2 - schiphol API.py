@@ -177,7 +177,7 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
-flight_direction_colors = {'D': '#65e892', 'A': '#354abf'}
+flight_direction_colors = {'D': '#65e892', 'A': '#17b794'}
 
 def vlucht_pertijdstip(dataframe):
     df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
