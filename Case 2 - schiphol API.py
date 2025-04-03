@@ -212,6 +212,52 @@ def vlucht_statussen(dataframe):
     st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
                             x='vlucht_status', y='count', labels={'vlucht_status': 'Status', 'count': 'Aantal'},
                             width=600, height=400))
+    
+def vlucht_statussen_info():
+    st.subheader("Legenda: Vluchtstatussen")
+
+    # Define flight statuses separately for Departing and Arriving flights
+    departing_flights = {
+        "SCH": "Flight scheduled",
+        "DEL": "Delayed",
+        "WIL": "Wait in Lounge",
+        "GTO": "Gate Open",
+        "BRD": "Boarding",
+        "GCL": "Gate Closing",
+        "GTD": "Gate Closed",
+        "DEP": "Departed",
+        "CNX": "Cancelled",
+        "GCH": "Gate Change",
+        "TOM": "Tomorrow"
+    }
+
+    arriving_flights = {
+        "SCH": "Flight scheduled",
+        "AIR": "Airborne",
+        "EXP": "Expected Landing",
+        "FIR": "Flight in Dutch airspace",
+        "LND": "Landed",
+        "FIB": "FIBAG",
+        "ARR": "Arrived - Flight completely handled",
+        "DIV": "Diverted",
+        "CNX": "Cancelled",
+        "TOM": "Tomorrow"
+    }
+
+    # Convert to DataFrames for Streamlit tables
+    df_departing = pd.DataFrame(list(departing_flights.items()), columns=["Status", "Betekenis"])
+    df_arriving = pd.DataFrame(list(arriving_flights.items()), columns=["Status", "Betekenis"])
+
+    # Display in two columns for better readability
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("✈️ Vertrekkende Vluchten")
+        st.dataframe(df_departing, hide_index=True, height=300, use_container_width=True)
+
+    with col2:
+        st.subheader("🛬 Aankomende Vluchten")
+        st.dataframe(df_arriving, hide_index=True, height=300, use_container_width=True)
 
 def vlucht_haventype(dataframe):
     # Count of flights per aircraft type
@@ -338,91 +384,41 @@ if options == 'Home':
 
     st.write(df)
 
-elif options == 'Statistiek':
-
+if options == 'Statistiek':
     st.title('Statistiek')
-
     st.divider()
-
-    tab1, tab2, tab3 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden", 'Interactieve plot'])
+    
+    # Flight direction filter
+    flight_direction = st.radio("Selecteer vluchtrichting", ['Alle vluchten', 'Vertrekkend', 'Aankomend'])
+    if flight_direction == 'Vertrekkend':
+        df_filtered = df[df['flightDirection'] == 'D']
+    elif flight_direction == 'Aankomend':
+        df_filtered = df[df['flightDirection'] == 'A']
+    else:
+        df_filtered = df.copy()
+    
+    tab1, tab2 = st.tabs(['Vluchten', "Geplande vs. Werkelijke landingstijden"])
     with tab1:
         container = st.container()
-
-    with container:
-        col1, col2 = st.columns([1,1])  # Adjust the ratio of widths as needed
-
-        with col1:
-            vlucht1(df)
-
-        with col2:
-            vlucht2(df)
-        
-        col3, col4 = st.columns([1,1])  # Adjust the ratio of widths as needed
-        with col3:
-            vlucht_land(df)
-        with col4:
-            vlucht_continent(df)
-
-        col5, col6 = st.columns([1,1])  # Adjust the ratio of widths as needed
-        with col5:
-            vlucht_statussen(df)
-        with col6:
-            st.subheader("Legenda: Vluchtstatussen")
-
-            # Define flight statuses separately for Departing and Arriving flights
-            departing_flights = {
-                "SCH": "Flight scheduled",
-                "DEL": "Delayed",
-                "WIL": "Wait in Lounge",
-                "GTO": "Gate Open",
-                "BRD": "Boarding",
-                "GCL": "Gate Closing",
-                "GTD": "Gate Closed",
-                "DEP": "Departed",
-                "CNX": "Cancelled",
-                "GCH": "Gate Change",
-                "TOM": "Tomorrow"
-            }
-
-            arriving_flights = {
-                "SCH": "Flight scheduled",
-                "AIR": "Airborne",
-                "EXP": "Expected Landing",
-                "FIR": "Flight in Dutch airspace",
-                "LND": "Landed",
-                "FIB": "FIBAG",
-                "ARR": "Arrived - Flight completely handled",
-                "DIV": "Diverted",
-                "CNX": "Cancelled",
-                "TOM": "Tomorrow"
-            }
-
-            # Convert to DataFrames for Streamlit tables
-            df_departing = pd.DataFrame(list(departing_flights.items()), columns=["Status", "Betekenis"])
-            df_arriving = pd.DataFrame(list(arriving_flights.items()), columns=["Status", "Betekenis"])
-
-            # Display in two columns for better readability
+        with container:
             col1, col2 = st.columns(2)
-
             with col1:
-                st.subheader("✈️ Vertrekkende Vluchten")
-                st.dataframe(df_departing, hide_index=True, height=300, use_container_width=True)
-
+                vlucht1(df_filtered)
             with col2:
-                st.subheader("🛬 Aankomende Vluchten")
-                st.dataframe(df_arriving, hide_index=True, height=300, use_container_width=True)
-        
-        col7, col8 = st.columns([1,1])  # Adjust the ratio of widths as needed
-        with col7:
-            vlucht_haventype(df)
-        with col8:
-            vlucht_pier(df)
-
-    with tab2:
-        vlucht4(df)
-
-    with tab3:
-        vlucht3(df)
+                vlucht2(df_filtered)
+            col3, col4 = st.columns(2)
+            with col3:
+                vlucht_land(df_filtered)
+            with col4:
+                vlucht_continent(df_filtered)
+            col5, col6 = st.columns(2)
+            with col5:
+                vlucht_statussen(df_filtered)
+            with col6:
+                vlucht_haventype(df_filtered)
+            col7, col8 = st.columns(2)
+            with col7:
+                vlucht_pier(df_filtered)
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
