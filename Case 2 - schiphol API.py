@@ -190,28 +190,28 @@ def vlucht_land(dataframe):
     st.subheader("Aantal vluchten per land")
     st.plotly_chart(px.bar(dataframe['country_name'].value_counts().reset_index(), 
                             x='country_name', y='count', labels={'country_name': 'Continenten', 'count': 'Aantal vluchten'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
 
 def vlucht_continent(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per continent")
     st.plotly_chart(px.bar(dataframe['continent'].value_counts().reset_index(), 
                             x='continent', y='count', labels={'continent': 'Continenten', 'count': 'Aantal vluchten'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
 
 def vlucht_bagageband(dataframe):
     # Count of baggage belts used
     st.subheader("Gebruik van bagagebanden")
     st.plotly_chart(px.bar(dataframe['baggage_belt'].value_counts().reset_index(),
                             x='baggage_belt', y='count', labels={'baggage_belt': 'Bagageband', 'count': 'Aantal vluchten'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
 
 def vlucht_statussen(dataframe):
     # Count of flights per flight status
     st.subheader("Aantal vluchten per status")
     st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
                             x='vlucht_status', y='count', labels={'vlucht_status': 'Status', 'count': 'Aantal'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
     
 def vlucht_statussen_info():
     st.subheader("Legenda: Vluchtstatussen")
@@ -264,14 +264,14 @@ def vlucht_haventype(dataframe):
     st.subheader("Aantal vluchten per vliegtuigtype")
     st.plotly_chart(px.bar(dataframe['type'].value_counts().reset_index(),
                             x='type', y='count', labels={'type': 'Vliegtuigtype', 'count': 'Aantal'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
     
 def vlucht_pier(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
     st.plotly_chart(px.bar(dataframe['pier'].value_counts().reset_index(),
                             x='pier', y='count', labels={'pier': 'Schipholpier', 'count': 'Aantal'},
-                            width=600, height=400))
+                            color='flightDirection', width=600, height=400))
 
 
 # Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
@@ -415,10 +415,12 @@ if options == 'Statistiek':
             with col5:
                 vlucht_statussen(df_filtered)
             with col6:
-                vlucht_haventype(df_filtered)
+                vlucht_statussen_info()
             col7, col8 = st.columns(2)
             with col7:
                 vlucht_pier(df_filtered)
+            with col8:
+                vlucht_haventype(df_filtered)
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
