@@ -184,28 +184,28 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
-def vlucht5():
+def vlucht5(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per bestemming")
     st.plotly_chart(px.bar(dataframe['destination'].value_counts().reset_index(), 
                             x='index', y='destination', labels={'index': 'Bestemming', 'destination': 'Aantal vluchten'},
                             width=700, height=400))
 
-def vlucht6():
+def vlucht6(dataframe):
     # Count of baggage belts used
     st.subheader("Gebruik van bagagebanden")
     st.plotly_chart(px.bar(dataframe['baggage_belt'].value_counts().reset_index(),
                             x='index', y='baggage_belt', labels={'index': 'Bagageband', 'baggage_belt': 'Aantal vluchten'},
                             width=600, height=400))
 
-def vlucht7():
+def vlucht7(dataframe):
     # Count of flights per flight status
     st.subheader("Aantal vluchten per status")
     st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
                             x='index', y='vlucht_status', labels={'index': 'Status', 'vlucht_status': 'Aantal'},
                             width=600, height=400))
 
-def vlucht8():
+def vlucht8(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
     st.plotly_chart(px.bar(dataframe['iataMain'].value_counts().reset_index(),
