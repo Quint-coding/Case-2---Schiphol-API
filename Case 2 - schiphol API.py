@@ -495,12 +495,12 @@ elif options == 'Geografische map':
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
     st.markdown("""
-                 <h1>- toegevoegd aan github repo </h1>
-                 <h1>- kleuren thema aangepast</h1>
-                 <h1>- text vergroot</h1>
-                 <h1>- pydeck voor geoplot gebruikt</h1>
-                 <h1>- meer data weergeven</h1>
-                 <h1>- betere visualisatie in streamlit </h1>
+                 <h3>- toegevoegd aan github repo </h3>
+                 <h3>- kleuren thema aangepast</h3>
+                 <h3>- text vergroot</h3>
+                 <h3>- pydeck voor geoplot gebruikt</h3>
+                 <h3>- meer data weergeven</h3>
+                 <h3>- betere visualisatie in streamlit </h3>
                  """, unsafe_allow_html=True)
     
 else:
