@@ -187,17 +187,20 @@ def vlucht4(dataframe):
 def vlucht_land(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per bestemming")
-    
+
     # Prepare data
     country_counts = dataframe['country_name'].value_counts().reset_index()
     country_counts.columns = ['Bestemming', 'Aantal vluchten']
-    
+
+    # Generate a unique key using uuid
+    unique_key = f"vluchten_per_bestemming_{uuid.uuid4().hex}"
+
     # Plot chart with a unique key
     fig = px.bar(country_counts, x='Bestemming', y='Aantal vluchten', 
                  labels={'Bestemming': 'Bestemming', 'Aantal vluchten': 'Aantal vluchten'}, 
                  width=600, height=400)
     
-    st.plotly_chart(fig, key="vluchten_per_bestemming")
+    st.plotly_chart(fig, key=unique_key)  # Ensure the key is always unique
 
 def vlucht_continent(dataframe):
     # Count of flights per destination
