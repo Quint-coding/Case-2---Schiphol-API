@@ -409,7 +409,7 @@ if options == 'Home':
 
     st.subheader('Door meer streamlit functies, pydeck charts en statistieke analyse het dashboard verbeterd.')
 
-    st.image("KLM vliegtuig.jpg")
+    st.image("KLM vliegtuig.jpg", use_container_width=True)
 
 if options == 'Statistiek':
     st.title('Statistiek')
