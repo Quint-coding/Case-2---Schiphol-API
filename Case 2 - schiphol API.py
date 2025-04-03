@@ -187,9 +187,17 @@ def vlucht4(dataframe):
 def vlucht_land(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per bestemming")
-    st.plotly_chart(px.bar(dataframe['country_name'].value_counts().reset_index(), 
-                            x='country_name', y='count', labels={'country_name': 'Bestemming', 'count': 'Aantal vluchten'},
-                            width=600, height=400))
+    
+    # Prepare data
+    country_counts = dataframe['country_name'].value_counts().reset_index()
+    country_counts.columns = ['Bestemming', 'Aantal vluchten']
+    
+    # Plot chart with a unique key
+    fig = px.bar(country_counts, x='Bestemming', y='Aantal vluchten', 
+                 labels={'Bestemming': 'Bestemming', 'Aantal vluchten': 'Aantal vluchten'}, 
+                 width=600, height=400)
+    
+    st.plotly_chart(fig, key="vluchten_per_bestemming")
 
 def vlucht_continent(dataframe):
     # Count of flights per destination
@@ -219,7 +227,7 @@ def vlucht_haventype(dataframe):
                             x='type', y='count', labels={'type': 'Vliegtuigtype', 'count': 'Aantal'},
                             width=600, height=400))
     
-def vlucht_haventype(dataframe):
+def vlucht_pier(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
     st.plotly_chart(px.bar(dataframe['pier'].value_counts().reset_index(),
