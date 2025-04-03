@@ -367,50 +367,50 @@ elif options == 'Statistiek':
         with col5:
             vlucht_statussen(df)
         with col6:
-                st.subheader("Legenda: Vluchtstatussen")
+            st.subheader("Legenda: Vluchtstatussen")
 
-                # Define flight statuses separately for Departing and Arriving flights
-                departing_flights = {
-                    "SCH": "Flight scheduled",
-                    "DEL": "Delayed",
-                    "WIL": "Wait in Lounge",
-                    "GTO": "Gate Open",
-                    "BRD": "Boarding",
-                    "GCL": "Gate Closing",
-                    "GTD": "Gate Closed",
-                    "DEP": "Departed",
-                    "CNX": "Cancelled",
-                    "GCH": "Gate Change",
-                    "TOM": "Tomorrow"
-                }
+            # Define flight statuses separately for Departing and Arriving flights
+            departing_flights = {
+                "SCH": "Flight scheduled",
+                "DEL": "Delayed",
+                "WIL": "Wait in Lounge",
+                "GTO": "Gate Open",
+                "BRD": "Boarding",
+                "GCL": "Gate Closing",
+                "GTD": "Gate Closed",
+                "DEP": "Departed",
+                "CNX": "Cancelled",
+                "GCH": "Gate Change",
+                "TOM": "Tomorrow"
+            }
 
-                arriving_flights = {
-                    "SCH": "Flight scheduled",
-                    "AIR": "Airborne",
-                    "EXP": "Expected Landing",
-                    "FIR": "Flight in Dutch airspace",
-                    "LND": "Landed",
-                    "FIB": "FIBAG",
-                    "ARR": "Arrived - Flight completely handled",
-                    "DIV": "Diverted",
-                    "CNX": "Cancelled",
-                    "TOM": "Tomorrow"
-                }
+            arriving_flights = {
+                "SCH": "Flight scheduled",
+                "AIR": "Airborne",
+                "EXP": "Expected Landing",
+                "FIR": "Flight in Dutch airspace",
+                "LND": "Landed",
+                "FIB": "FIBAG",
+                "ARR": "Arrived - Flight completely handled",
+                "DIV": "Diverted",
+                "CNX": "Cancelled",
+                "TOM": "Tomorrow"
+            }
 
-                # Convert to DataFrames for Streamlit tables
-                df_departing = pd.DataFrame(list(departing_flights.items()), columns=["Status", "Betekenis"])
-                df_arriving = pd.DataFrame(list(arriving_flights.items()), columns=["Status", "Betekenis"])
+            # Convert to DataFrames for Streamlit tables
+            df_departing = pd.DataFrame(list(departing_flights.items()), columns=["Status", "Betekenis"])
+            df_arriving = pd.DataFrame(list(arriving_flights.items()), columns=["Status", "Betekenis"])
 
-                # Display in two columns for better readability
-                col1, col2 = st.columns(2)
+            # Display in two columns for better readability
+            col1, col2 = st.columns(2)
 
-                with col1:
-                    st.subheader("Vertrekkende Vluchten")
-                    st.table(df_departing)
+            with col1:
+                st.subheader("✈️ Vertrekkende Vluchten")
+                st.dataframe(df_departing, hide_index=True, height=300, use_container_width=True)
 
-                with col2:
-                    st.subheader("Aankomende Vluchten")
-                    st.table(df_arriving)
+            with col2:
+                st.subheader("🛬 Aankomende Vluchten")
+                st.dataframe(df_arriving, hide_index=True, height=300, use_container_width=True)
         
         col7, col8 = st.columns([1,1])  # Adjust the ratio of widths as needed
         with col7:
