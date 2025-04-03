@@ -250,7 +250,7 @@ def vlucht_statussen_info():
         "EXP": "Expected Landing",
         "FIR": "Flight in Dutch airspace",
         "LND": "Landed",
-        "FIB": "FIBAG",
+        "FIB": "First Bagage on belt soon",
         "ARR": "Arrived - Flight completely handled",
         "DIV": "Diverted",
         "CNX": "Cancelled",
@@ -409,11 +409,11 @@ if options == 'Home':
 
     st.subheader('Door meer streamlit functies, pydeck charts en statistieke analyse het dashboard verbeterd.')
 
-    st.write(df)
+    st.image()
 
 if options == 'Statistiek':
     st.title('Statistiek')
-    st.divider()
+    st.divider("KLM vliegtuig.jpg")
 
     df_filtered = filter_flights(df)
 
@@ -488,7 +488,14 @@ elif options == 'Geografische map':
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
-    st.subheader("""Als eerst hebben wij het bestand in een github repo gezet om makkelijk aanpassingen te maken en daarna is ook het kleuren thema veranderd.\nDaarna hebben wij gekeken naar nieuwe manieren om data te visualiseren en welke data wij ter beschikking hadden.\nVan de geopandas plot een Pydeck Arcplot gemaakt. \nAndere data gevisualiseerd.\nNieuwe technieken gebruikt voor de layout, zoals tabs, containers en dividers.\nTekst groter gemaakt waar kon."""
+    st.subheader("""
+                 - toegevoegd aan github repo 
+                 - kleuren thema aangepast
+                 - text vergroot
+                 - pydeck voor geoplot gebruikt
+                 - meer data weergeven
+                 - betere visualisatie in streamlit 
+                 """
                  )
 else:
     print("Ongeldige optie geselecteerd.")
