@@ -184,28 +184,35 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
-def vlucht5(dataframe):
+def vlucht_land(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per bestemming")
-    st.plotly_chart(px.bar(dataframe['destination'].value_counts().reset_index(), 
-                            x='destination', y='count', labels={'destination': 'Bestemming', 'count': 'Aantal vluchten'},
+    st.plotly_chart(px.bar(dataframe['country_name'].value_counts().reset_index(), 
+                            x='country_name', y='count', labels={'country_name': 'Bestemming', 'count': 'Aantal vluchten'},
+                            width=600, height=400))
+
+def vlucht_continent(dataframe):
+    # Count of flights per destination
+    st.subheader("Aantal vluchten per continent")
+    st.plotly_chart(px.bar(dataframe['continent'].value_counts().reset_index(), 
+                            x='continent', y='count', labels={'continent': 'Continenten', 'count': 'Aantal vluchten'},
                             width=700, height=400))
 
-def vlucht6(dataframe):
+def vlucht_bagageband(dataframe):
     # Count of baggage belts used
     st.subheader("Gebruik van bagagebanden")
     st.plotly_chart(px.bar(dataframe['baggage_belt'].value_counts().reset_index(),
                             x='baggage_belt', y='count', labels={'baggage_belt': 'Bagageband', 'count': 'Aantal vluchten'},
                             width=600, height=400))
 
-def vlucht7(dataframe):
+def vlucht_statussen(dataframe):
     # Count of flights per flight status
     st.subheader("Aantal vluchten per status")
     st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
                             x='vlucht_status', y='count', labels={'vlucht_status': 'Status', 'count': 'Aantal'},
                             width=600, height=400))
 
-def vlucht8(dataframe):
+def vlucht_iataMain(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
     st.plotly_chart(px.bar(dataframe['iataMain'].value_counts().reset_index(),
@@ -338,13 +345,27 @@ elif options == 'Statistiek':
 
         with col1:
             vlucht1(df)
-            vlucht5(df)
-            vlucht7(df)
+            vlucht_land(df)
+            vlucht_statussen(df)
 
         with col2:
             vlucht2(df)
-            vlucht6(df)
-            vlucht8(df)
+            vlucht_continent(df)
+            st.markdown(
+                    """
+                    ### Legend:
+                    - <span style="color:blue">ARR</span>:    Arriving Flights
+                    - <span style="color:green">DEP</span>:   Departing Flights
+                    - <span style="color:green">EXP</span>:   Expected Flights
+                    - <span style="color:green">CNX</span>:   Cancelled Flights
+                    - <span style="color:green">SCH</span>:   Scheduled Flights
+                    - <span style="color:green">DEL</span>:   Delayed Flights
+                    - <span style="color:green">LND</span>:   Landed Flights 
+                    - <span style="color:green">FIR</span>:   Flight is in Dutch airspace                   
+                    """,
+                    unsafe_allow_html=True
+                )
+            vlucht_iataMain(df)
 
     with tab2:
         vlucht4(df)
