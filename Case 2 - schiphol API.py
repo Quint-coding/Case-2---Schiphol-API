@@ -443,6 +443,12 @@ if options == 'Statistiek':
                 vlucht_pier(df_filtered)
             with col8:
                 vlucht_haventype(df_filtered)
+    
+    with tab2:
+        vlucht4(df)
+    
+    with tab3:
+        vlucht3(df)
 
 elif options == 'Geografische map':
     st.title("Flight Visualization with PyDeck")
