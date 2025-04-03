@@ -68,19 +68,13 @@ def update_data():
 # Get cached data
 df = get_flight_data()
 
-# Sidebar Navigation
-st.sidebar.title("📍 Navigatie")
-options = st.sidebar.radio("Ga naar", ['Statistiek',
-                                       'Geografische map', 
-                                       'Aanpassingen'])
-
 def vlucht1(dataframe):
-    st.header('Aantal vluchten')
-    st.plotly_chart(px.histogram(dataframe, x="isOperationalFlight", width=400))
-
-def vlucht2(dataframe):
     st.header('Vluchten per tijdstip')
     st.plotly_chart(px.histogram(dataframe, x="scheduleTime", width=600))
+
+def vlucht2(dataframe):
+    st.header('Is operationeel')
+    st.plotly_chart(px.histogram(dataframe, x="isOperationalFlight", width=400))
 
 def vlucht3(df_filtered):
     # **Relevante kolommen filteren**
@@ -190,6 +184,34 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
+def vlucht5():
+    # Count of flights per destination
+    st.subheader("Aantal vluchten per bestemming")
+    st.plotly_chart(px.bar(dataframe['destination'].value_counts().reset_index(), 
+                            x='index', y='destination', labels={'index': 'Bestemming', 'destination': 'Aantal vluchten'},
+                            width=700, height=400))
+
+def vlucht6():
+    # Count of baggage belts used
+    st.subheader("Gebruik van bagagebanden")
+    st.plotly_chart(px.bar(dataframe['baggage_belt'].value_counts().reset_index(),
+                            x='index', y='baggage_belt', labels={'index': 'Bagageband', 'baggage_belt': 'Aantal vluchten'},
+                            width=600, height=400))
+
+def vlucht7():
+    # Count of flights per flight status
+    st.subheader("Aantal vluchten per status")
+    st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
+                            x='index', y='vlucht_status', labels={'index': 'Status', 'vlucht_status': 'Aantal'},
+                            width=600, height=400))
+
+def vlucht8():
+    # Count of flights per aircraft type
+    st.subheader("Aantal vluchten per vliegtuigtype")
+    st.plotly_chart(px.bar(dataframe['iataMain'].value_counts().reset_index(),
+                            x='index', y='iataMain', labels={'index': 'Vliegtuigtype', 'iataMain': 'Aantal'},
+                            width=600, height=400))
+
 
 # Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
 df["flight_number"] = df["scheduleDateTime"].rank(method="first").astype(int)
@@ -286,8 +308,20 @@ def visualize_flights_from_schiphol(df, selected_time=None):
     # Display in Streamlit
     st.pydeck_chart(r)
 
+# Sidebar Navigation
+st.sidebar.title("📍 Navigatie")
+options = st.sidebar.radio("Ga naar", ['Home',
+                                       'Statistiek',
+                                       'Geografische map', 
+                                       'Aanpassingen'])
 
-if options == 'Statistiek':
+
+if options == 'Home':
+    st.title('Verbeterd API dashboard')
+
+    st.subheader('Door meer streamlit functies, pydeck charts en statistieke analyse het dashboard verbeterd.')
+
+elif options == 'Statistiek':
 
     st.title('Statistiek')
 
@@ -301,10 +335,14 @@ if options == 'Statistiek':
         col1, col2 = st.columns([1,1])  # Adjust the ratio of widths as needed
 
         with col1:
-            vlucht2(df)
+            vlucht1(df)
+            vlucht5(df)
+            vlucht7(df)
 
         with col2:
-            vlucht1(df)
+            vlucht2(df)
+            vlucht6(df)
+            vlucht8(df)
 
     with tab2:
         vlucht4(df)
