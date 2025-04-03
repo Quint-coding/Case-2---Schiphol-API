@@ -356,15 +356,7 @@ elif options == 'Geografische map':
 
 elif options == 'Aanpassingen':
     st.title('Aanpassingen t.o.v. eerste versie')
-    st.subheader(
-                """
-                 Als eerst hebben wij het bestand in een github repo gezet om makkelijk aanpassingen te maken en daarna is ook het kleuren thema veranderd.\n
-                 Daarna hebben wij gekeken naar nieuwe manieren om data te visualiseren en welke data wij ter beschikking hadden.\n
-                 Van de geopandas plot een Pydeck Arcplot gemaakt. \n
-                 Andere data gevisualiseerd.\n
-                 Nieuwe technieken gebruikt voor de layout, zoals tabs, containers en dividers.\n
-                 Tekst groter gemaakt waar kon.
-                 """
+    st.subheader("""Als eerst hebben wij het bestand in een github repo gezet om makkelijk aanpassingen te maken en daarna is ook het kleuren thema veranderd.\nDaarna hebben wij gekeken naar nieuwe manieren om data te visualiseren en welke data wij ter beschikking hadden.\nVan de geopandas plot een Pydeck Arcplot gemaakt. \nAndere data gevisualiseerd.\nNieuwe technieken gebruikt voor de layout, zoals tabs, containers en dividers.\nTekst groter gemaakt waar kon."""
                  )
 else:
     print("Ongeldige optie geselecteerd.")
