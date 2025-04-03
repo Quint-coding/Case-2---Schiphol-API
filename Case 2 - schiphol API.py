@@ -177,31 +177,37 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
+flight_direction_colors = {'D': 'blue', 'A': 'green'}
+
 def vlucht_pertijdstip(dataframe):
     df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
     st.plotly_chart(px.bar(df_grouped, x='scheduleTime', y='count', color='flightDirection', 
-                            labels={'scheduleTime': 'Land', 'count': 'Aantal'}, width=600, height=400))
+                            labels={'scheduleTime': 'Land', 'count': 'Aantal'}, width=600, height=400,
+                            color_discrete_map=flight_direction_colors))
 
 def vlucht_operationeel(dataframe):
     st.subheader('Is operationeel')
     df_grouped = dataframe.groupby(['isOperationalFlight', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='isOperationalFlight', y='count', color='flightDirection', 
-                            labels={'isOperationalFlight': 'Land', 'count': 'Aantal'}, width=600, height=400))
+                            labels={'isOperationalFlight': 'Land', 'count': 'Aantal'}, width=600, height=400,
+                            color_discrete_map=flight_direction_colors))
 
 def vlucht_land(dataframe):
     st.subheader("Aantal vluchten per land")
     df_grouped = dataframe.groupby(['country_name', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='country_name', y='count', color='flightDirection', 
-                            labels={'country_name': 'Land', 'count': 'Aantal'}, width=600, height=400))
+                            labels={'country_name': 'Land', 'count': 'Aantal'}, width=600, height=400,
+                            color_discrete_map=flight_direction_colors))
 
 def vlucht_continent(dataframe):
     st.subheader("Aantal vluchten per continent")
     df_grouped = dataframe.groupby(['continent', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='continent', y='count', color='flightDirection', 
-                            labels={'continent': 'Continent', 'count': 'Aantal'}, width=600, height=400))
+                            labels={'continent': 'Continent', 'count': 'Aantal'}, width=600, height=400,
+                            color_discrete_map=flight_direction_colors))
 
 def vlucht_bagageband(dataframe):
     # Count of baggage belts used
@@ -209,14 +215,16 @@ def vlucht_bagageband(dataframe):
     df_grouped = dataframe.groupby(['baggage_belt', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='baggage_belt', y='count', color='flightDirection', 
-                           labels={'baggage_belt': 'Bagageband', 'count': 'Aantal'}, width=600, height=400))
+                           labels={'baggage_belt': 'Bagageband', 'count': 'Aantal'}, width=600, height=400,
+                           color_discrete_map=flight_direction_colors))
 
 def vlucht_statussen(dataframe):
     st.subheader("Aantal vluchten per status")
     df_grouped = dataframe.groupby(['vlucht_status', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='vlucht_status', y='count', color='flightDirection', 
-                            labels={'vlucht_status': 'Status', 'count': 'Aantal'}, width=600, height=400))
+                            labels={'vlucht_status': 'Status', 'count': 'Aantal'}, width=600, height=400,
+                            color_discrete_map=flight_direction_colors))
     
 def vlucht_statussen_info():
     st.subheader("Legenda: Vluchtstatussen")
@@ -270,7 +278,8 @@ def vlucht_haventype(dataframe):
     df_grouped = dataframe.groupby(['type', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='type', y='count', color='flightDirection', 
-                           labels={'type': 'Vliegtuigtype', 'count': 'Aantal'}, width=600, height=400))
+                           labels={'type': 'Vliegtuigtype', 'count': 'Aantal'}, width=600, height=400,
+                           color_discrete_map=flight_direction_colors))
     
 def vlucht_pier(dataframe):
     # Count of flights per aircraft type
@@ -278,7 +287,8 @@ def vlucht_pier(dataframe):
     df_grouped = dataframe.groupby(['pier', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='pier', y='count', color='flightDirection', 
-                           labels={'pier': 'Schipholpier', 'count': 'Aantal'}, width=600, height=400))
+                           labels={'pier': 'Schipholpier', 'count': 'Aantal'}, width=600, height=400,
+                           color_discrete_map=flight_direction_colors))
     
 
 def filter_flights(dataframe):
