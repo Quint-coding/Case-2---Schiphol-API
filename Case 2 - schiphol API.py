@@ -409,11 +409,11 @@ if options == 'Home':
 
     st.subheader('Door meer streamlit functies, pydeck charts en statistieke analyse het dashboard verbeterd.')
 
-    st.image()
+    st.image("KLM vliegtui.jpg")
 
 if options == 'Statistiek':
     st.title('Statistiek')
-    st.divider("KLM vliegtuig.jpg")
+    st.divider()
 
     df_filtered = filter_flights(df)
 
