@@ -218,6 +218,13 @@ def vlucht_haventype(dataframe):
     st.plotly_chart(px.bar(dataframe['type'].value_counts().reset_index(),
                             x='type', y='count', labels={'type': 'Vliegtuigtype', 'count': 'Aantal'},
                             width=600, height=400))
+    
+def vlucht_haventype(dataframe):
+    # Count of flights per aircraft type
+    st.subheader("Aantal vluchten per vliegtuigtype")
+    st.plotly_chart(px.bar(dataframe['pier'].value_counts().reset_index(),
+                            x='pier', y='count', labels={'pier': 'Schipholpier', 'count': 'Aantal'},
+                            width=600, height=400))
 
 
 # Voeg een nieuwe kolom toe die de vluchten nummerd op basis van 'scheduleDateTime'
@@ -351,21 +358,39 @@ elif options == 'Statistiek':
         with col2:
             vlucht2(df)
             vlucht_continent(df)
+
+            vlucht_haventype(df)
+        
+        col3, col4 = st.columns([1,1])  # Adjust the ratio of widths as needed
+        with col3:
+            vlucht_land(df)
+        with col4:
+            vlucht_continent(df)
+
+        col5, col6 = st.columns([1,1])  # Adjust the ratio of widths as needed
+        with col5:
+            vlucht_statussen(df)
+        with col6:
             st.markdown(
                     """
                     ### Legend:
-                    - <span style="color:blue">ARR</span>:    Arriving Flights
-                    - <span style="color:green">DEP</span>:   Departing Flights
-                    - <span style="color:green">EXP</span>:   Expected Flights
-                    - <span style="color:green">CNX</span>:   Cancelled Flights
-                    - <span style="color:green">SCH</span>:   Scheduled Flights
-                    - <span style="color:green">DEL</span>:   Delayed Flights
-                    - <span style="color:green">LND</span>:   Landed Flights 
-                    - <span style="color:green">FIR</span>:   Flight is in Dutch airspace                   
+                    - <span style="color:white">ARR</span>:    Arriving Flights
+                    - <span style="color:white">DEP</span>:   Departing Flights
+                    - <span style="color:white">EXP</span>:   Expected Flights
+                    - <span style="color:white">CNX</span>:   Cancelled Flights
+                    - <span style="color:white">SCH</span>:   Scheduled Flights
+                    - <span style="color:white">DEL</span>:   Delayed Flights
+                    - <span style="color:white">LND</span>:   Landed Flights 
+                    - <span style="color:white">FIR</span>:   Flight is in Dutch airspace                   
                     """,
                     unsafe_allow_html=True
                 )
+        
+        col7, col8 = st.columns([1,1])  # Adjust the ratio of widths as needed
+        with col7:
             vlucht_haventype(df)
+        with col8:
+            vlucht_pier(df)
 
     with tab2:
         vlucht4(df)
