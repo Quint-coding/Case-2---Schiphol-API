@@ -321,6 +321,8 @@ if options == 'Home':
 
     st.subheader('Door meer streamlit functies, pydeck charts en statistieke analyse het dashboard verbeterd.')
 
+    st.write(df)
+
 elif options == 'Statistiek':
 
     st.title('Statistiek')
