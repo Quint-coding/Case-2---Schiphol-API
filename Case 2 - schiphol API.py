@@ -187,28 +187,17 @@ def vlucht4(dataframe):
 
 def vlucht_land(dataframe):
     # Count of flights per destination
-    st.subheader("Aantal vluchten per bestemming")
-
-    # Prepare data
-    country_counts = dataframe['country_name'].value_counts().reset_index()
-    country_counts.columns = ['Bestemming', 'Aantal vluchten']
-
-    # Generate a unique key using uuid
-    unique_key = f"vluchten_per_bestemming_{uuid.uuid4().hex}"
-
-    # Plot chart with a unique key
-    fig = px.bar(country_counts, x='Bestemming', y='Aantal vluchten', 
-                 labels={'Bestemming': 'Bestemming', 'Aantal vluchten': 'Aantal vluchten'}, 
-                 width=600, height=400)
-    
-    st.plotly_chart(fig, key=unique_key)  # Ensure the key is always unique
+    st.subheader("Aantal vluchten per land")
+    st.plotly_chart(px.bar(dataframe['country_name'].value_counts().reset_index(), 
+                            x='country_name', y='count', labels={'country_name': 'Continenten', 'count': 'Aantal vluchten'},
+                            width=600, height=400))
 
 def vlucht_continent(dataframe):
     # Count of flights per destination
     st.subheader("Aantal vluchten per continent")
     st.plotly_chart(px.bar(dataframe['continent'].value_counts().reset_index(), 
                             x='continent', y='count', labels={'continent': 'Continenten', 'count': 'Aantal vluchten'},
-                            width=700, height=400))
+                            width=600, height=400))
 
 def vlucht_bagageband(dataframe):
     # Count of baggage belts used
@@ -364,14 +353,9 @@ elif options == 'Statistiek':
 
         with col1:
             vlucht1(df)
-            vlucht_land(df)
-            vlucht_statussen(df)
 
         with col2:
             vlucht2(df)
-            vlucht_continent(df)
-
-            vlucht_haventype(df)
         
         col3, col4 = st.columns([1,1])  # Adjust the ratio of widths as needed
         with col3:
