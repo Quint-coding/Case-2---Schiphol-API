@@ -186,32 +186,29 @@ def vlucht4(dataframe):
     st.plotly_chart(fig)
 
 def vlucht_land(dataframe):
-    # Count of flights per destination
     st.subheader("Aantal vluchten per land")
-    st.plotly_chart(px.bar(dataframe['country_name'].value_counts().reset_index(), 
-                            x='country_name', y='count', labels={'country_name': 'Continenten', 'count': 'Aantal vluchten'},
-                            color='flightDirection', width=600, height=400))
+    df_grouped = dataframe.groupby(['country_name', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='country_name', y='count', color='flightDirection', 
+                            labels={'country_name': 'Land', 'count': 'Aantal'}, width=600, height=400))
 
 def vlucht_continent(dataframe):
-    # Count of flights per destination
     st.subheader("Aantal vluchten per continent")
-    st.plotly_chart(px.bar(dataframe['continent'].value_counts().reset_index(), 
-                            x='continent', y='count', labels={'continent': 'Continenten', 'count': 'Aantal vluchten'},
-                            color='flightDirection', width=600, height=400))
+    df_grouped = dataframe.groupby(['continent', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='continent', y='count', color='flightDirection', 
+                            labels={'continent': 'Continent', 'count': 'Aantal'}, width=600, height=400))
 
 def vlucht_bagageband(dataframe):
     # Count of baggage belts used
     st.subheader("Gebruik van bagagebanden")
-    st.plotly_chart(px.bar(dataframe['baggage_belt'].value_counts().reset_index(),
-                            x='baggage_belt', y='count', labels={'baggage_belt': 'Bagageband', 'count': 'Aantal vluchten'},
-                            color='flightDirection', width=600, height=400))
+    df_grouped = dataframe.groupby(['baggage_belt', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='baggage_belt', y='count', color='flightDirection', 
+                           labels={'baggage_belt': 'Bagageband', 'count': 'Aantal'}, width=600, height=400))
 
 def vlucht_statussen(dataframe):
-    # Count of flights per flight status
     st.subheader("Aantal vluchten per status")
-    st.plotly_chart(px.bar(dataframe['vlucht_status'].value_counts().reset_index(),
-                            x='vlucht_status', y='count', labels={'vlucht_status': 'Status', 'count': 'Aantal'},
-                            color='flightDirection', width=600, height=400))
+    df_grouped = dataframe.groupby(['vlucht_status', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='vlucht_status', y='count', color='flightDirection', 
+                            labels={'vlucht_status': 'Status', 'count': 'Aantal'}, width=600, height=400))
     
 def vlucht_statussen_info():
     st.subheader("Legenda: Vluchtstatussen")
