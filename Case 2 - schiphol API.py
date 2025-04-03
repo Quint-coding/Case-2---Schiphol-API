@@ -367,20 +367,35 @@ elif options == 'Statistiek':
         with col5:
             vlucht_statussen(df)
         with col6:
-            st.markdown(
-                    """
-                    ### Legend:
-                    - <span style="color:white">ARR</span>:    Arriving Flights
-                    - <span style="color:white">DEP</span>:   Departing Flights
-                    - <span style="color:white">EXP</span>:   Expected Flights
-                    - <span style="color:white">CNX</span>:   Cancelled Flights
-                    - <span style="color:white">SCH</span>:   Scheduled Flights
-                    - <span style="color:white">DEL</span>:   Delayed Flights
-                    - <span style="color:white">LND</span>:   Landed Flights 
-                    - <span style="color:white">FIR</span>:   Flight is in Dutch airspace                   
-                    """,
-                    unsafe_allow_html=True
-                )
+            st.subheader("Legenda: Vluchtstatussen")
+
+            # Define flight statuses and their descriptions
+            flight_statuses = {
+                "SCH": "Flight scheduled",
+                "DEL": "Delayed",
+                "WIL": "Wait in Lounge",
+                "GTO": "Gate Open",
+                "BRD": "Boarding",
+                "GCL": "Gate Closing",
+                "GTD": "Gate Closed",
+                "DEP": "Departed",
+                "CNX": "Cancelled",
+                "GCH": "Gate Change",
+                "TOM": "Tomorrow",
+                "AIR": "Airborne",
+                "EXP": "Expected Landing",
+                "FIR": "Flight in Dutch airspace",
+                "LND": "Landed",
+                "FIB": "FIBAG",
+                "ARR": "Arrived - Flight completely handled",
+                "DIV": "Diverted"
+            }
+
+            # Convert to DataFrame for Streamlit table
+            df_legend = pd.DataFrame(list(flight_statuses.items()), columns=["Status", "Betekenis"])
+
+            # Display the table
+            st.table(df_legend)
         
         col7, col8 = st.columns([1,1])  # Adjust the ratio of widths as needed
         with col7:
