@@ -212,11 +212,11 @@ def vlucht_statussen(dataframe):
                             x='vlucht_status', y='count', labels={'vlucht_status': 'Status', 'count': 'Aantal'},
                             width=600, height=400))
 
-def vlucht_iataMain(dataframe):
+def vlucht_haventype(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
-    st.plotly_chart(px.bar(dataframe['iataMain'].value_counts().reset_index(),
-                            x='iataMain', y='count', labels={'iataMain': 'Vliegtuigtype', 'count': 'Aantal'},
+    st.plotly_chart(px.bar(dataframe['type'].value_counts().reset_index(),
+                            x='type', y='count', labels={'type': 'Vliegtuigtype', 'count': 'Aantal'},
                             width=600, height=400))
 
 
