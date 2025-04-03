@@ -267,7 +267,7 @@ def vlucht_statussen_info():
 def vlucht_haventype(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per vliegtuigtype")
-    df_grouby = dataframe.groupby(['type', 'flightDirection']).size().reset_index(name='count')
+    df_grouped = dataframe.groupby(['type', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='type', y='count', color='flightDirection', 
                            labels={'type': 'Vliegtuigtype', 'count': 'Aantal'}, width=600, height=400))
@@ -275,7 +275,7 @@ def vlucht_haventype(dataframe):
 def vlucht_pier(dataframe):
     # Count of flights per aircraft type
     st.subheader("Aantal vluchten per Schipholpier")
-    df_grouby = dataframe.groupby(['pier', 'flightDirection']).size().reset_index(name='count')
+    df_grouped = dataframe.groupby(['pier', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='pier', y='count', color='flightDirection', 
                            labels={'pier': 'Schipholpier', 'count': 'Aantal'}, width=600, height=400))
