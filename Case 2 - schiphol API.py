@@ -69,14 +69,6 @@ def update_data():
 # Get cached data
 df = get_flight_data()
 
-def vlucht1(dataframe):
-    st.header('Vluchten per tijdstip')
-    st.plotly_chart(px.histogram(dataframe, x="scheduleTime", width=600))
-
-def vlucht2(dataframe):
-    st.header('Is operationeel')
-    st.plotly_chart(px.histogram(dataframe, x="isOperationalFlight", width=400))
-
 def vlucht3(df_filtered):
     # **Relevante kolommen filteren**
     possible_columns = [
@@ -185,6 +177,17 @@ def vlucht4(dataframe):
  
     st.plotly_chart(fig)
 
+def vlucht_pertijdstip(dataframe):
+    df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='scheduleTime', y='count', color='flightDirection', 
+                            labels={'scheduleTime': 'Land', 'count': 'Aantal'}, width=600, height=400))
+
+def vlucht_operationeel(dataframe):
+    st.subheader('Is operationeel')
+    df_grouped = dataframe.groupby(['isOperationalFlight', 'flightDirection']).size().reset_index(name='count')
+    st.plotly_chart(px.bar(df_grouped, x='isOperationalFlight', y='count', color='flightDirection', 
+                            labels={'isOperationalFlight': 'Land', 'count': 'Aantal'}, width=600, height=400))
+
 def vlucht_land(dataframe):
     st.subheader("Aantal vluchten per land")
     df_grouped = dataframe.groupby(['country_name', 'flightDirection']).size().reset_index(name='count')
@@ -265,7 +268,7 @@ def vlucht_haventype(dataframe):
     
 def vlucht_pier(dataframe):
     # Count of flights per aircraft type
-    st.subheader("Aantal vluchten per vliegtuigtype")
+    st.subheader("Aantal vluchten per Schipholpier")
     df_grouby = dataframe.groupby(['pier', 'flightdirection']).size().reset_index(name='count')
     st.plotly_chart(px.bar(df_grouby, x='pier', y='count', color='flightDirection', 
                            labels={'pier': 'Schipholpier', 'count': 'Aantal'}, width=600, height=400))
@@ -403,9 +406,9 @@ if options == 'Statistiek':
         with container:
             col1, col2 = st.columns([1,1])
             with col1:
-                vlucht1(df_filtered)
+                vlucht_pertijdstip(df_filtered)
             with col2:
-                vlucht2(df_filtered)
+                vlucht_operationeel(df_filtered)
             
             col3, col4 = st.columns([1,1])
             with col3:
