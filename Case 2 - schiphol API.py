@@ -180,8 +180,8 @@ def vlucht4(dataframe):
 flight_direction_colors = {'D': '#2772db', 'A': '#7dd87d'}
 
 def vlucht_pertijdstip(dataframe):
-    df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
     dataframe['scheduleTime'] = pd.to_datetime(dataframe['scheduleTime'])
+    df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='scheduleTime', ascending=True)
     st.plotly_chart(px.bar(df_grouped, x='scheduleTime', y='count', color='flightDirection', 
                             labels={'scheduleTime': 'Land', 'count': 'Aantal'}, width=600, height=400,
