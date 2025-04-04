@@ -184,7 +184,7 @@ def vlucht_pertijdstip(dataframe):
     df_grouped = dataframe.groupby(['scheduleTime', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='scheduleTime', ascending=True)
     st.plotly_chart(px.bar(df_grouped, x='scheduleTime', y='count', color='flightDirection', 
-                            labels={'scheduleTime': 'Land', 'count': 'Aantal'}, width=600, height=400,
+                            labels={'scheduleTime': 'Tijd', 'count': 'Aantal'}, width=600, height=400,
                             color_discrete_map=flight_direction_colors))
 
 def vlucht_operationeel(dataframe):
@@ -192,7 +192,7 @@ def vlucht_operationeel(dataframe):
     df_grouped = dataframe.groupby(['isOperationalFlight', 'flightDirection']).size().reset_index(name='count')
     df_grouped = df_grouped.sort_values(by='count', ascending=False)
     st.plotly_chart(px.bar(df_grouped, x='isOperationalFlight', y='count', color='flightDirection', 
-                            labels={'isOperationalFlight': 'Land', 'count': 'Aantal'}, width=600, height=400,
+                            labels={'isOperationalFlight': 'isOperational', 'count': 'Aantal'}, width=600, height=400,
                             color_discrete_map=flight_direction_colors))
 
 def vlucht_land(dataframe):
